@@ -97,42 +97,59 @@ The Forge activates this skill as a precision agent integrator — focused on un
 
 #### Phase 3: File Generation
 
-1. Create the new agent's workspace directory
-2. Generate **SOUL.md** — personality, values, communication style, boundaries
-3. Generate **AGENTS.md** — role definition, expertise areas, behavioral guidelines
-4. Generate **IDENTITY.md** — name, description, metadata
-5. Generate any skill files if the agent has specific skills
-6. Ensure all files follow OpenClaw workspace conventions and are consistent with the existing system's style
+1. Derive the new agent's workspace directory path: `{project-root}/agents/{agent-id}/` where `{agent-id}` is the kebab-case agent identifier from Phase 2 (e.g., `researcher`, `code-reviewer`)
+2. **Guard check:** If `{project-root}/agents/{agent-id}/` already exists, warn the user and ask whether to overwrite, pick a different id, or abort. Never silently overwrite an existing agent's workspace.
+3. Create the new agent's workspace directory at `{project-root}/agents/{agent-id}/`
+4. Generate **SOUL.md** at `{project-root}/agents/{agent-id}/SOUL.md` — personality, values, communication style, boundaries
+5. Generate **AGENTS.md** at `{project-root}/agents/{agent-id}/AGENTS.md` — role definition, expertise areas, behavioral guidelines
+6. Generate **IDENTITY.md** at `{project-root}/agents/{agent-id}/IDENTITY.md` — name, description, metadata
+7. Generate any skill files if the agent has specific skills, placed within the same workspace directory
+8. Ensure all files follow OpenClaw workspace conventions and are consistent with the existing system's style
+9. **Isolation check:** Confirm the new agent's files were written only to `{project-root}/agents/{agent-id}/` — no existing agent's workspace directory was modified
 
 #### Phase 4: Config Merge
 
-1. Create the new agent entry for `openclaw.json`:
-   - Agent name, workspace path, model configuration
+1. **Append** a new agent entry to the `agents.list[]` array in `openclaw.json` — never replace or overwrite existing entries:
+   - `id`: the kebab-case agent identifier (e.g., `researcher`)
+   - `name`: the display name from Phase 2
+   - `workspace`: path to the new agent's workspace directory (e.g., `./agents/researcher`)
+   - Model configuration (provider, primary model, fallbacks)
    - Tool policies (which tools this agent can access)
    - Spawn configuration (if it's a worker or can spawn others)
-2. Update bindings:
+   - Skills array if applicable
+   - **Do NOT set `default: true`** — the existing default agent keeps its default status unless the user explicitly requests changing it
+2. Update `bindings[]` — **append** new binding rules, never modify existing ones:
    - If Routing pattern: add new match rule that routes appropriate messages to this agent
    - If Orchestrator-Workers: register as a new worker the orchestrator can spawn
    - If Prompt Chaining: insert at the correct position in the chain
    - If new pattern needed: explain the change and get user approval
-3. Present the complete diff of changes to openclaw.json
+3. Present the complete diff of changes to openclaw.json — clearly show:
+   - The new entry being added to `agents.list[]`
+   - The new entries being added to `bindings[]`
+   - Confirm that no existing `agents.list[]` entries or `bindings[]` entries were modified
 4. Apply only after user confirms
 
 #### Phase 5: Validation
 
 1. Run structural checks:
-   - All referenced workspace files exist
+   - New agent's workspace directory `{project-root}/agents/{agent-id}/` exists with all required files (SOUL.md, AGENTS.md, IDENTITY.md)
    - openclaw.json is valid JSON with correct schema
-   - All bindings reference valid agent names
-2. Run coherence checks:
+   - All bindings reference valid agent names present in `agents.list[]`
+   - The new agent's `workspace` path in `agents.list[]` points to the correct directory
+2. Run isolation checks:
+   - No existing agent's workspace directory was modified or overwritten
+   - No existing `agents.list[]` entry was modified — only a new entry was appended
+   - No existing `bindings[]` entry was modified — only new entries were appended
+   - The `default: true` flag remains on the original default agent (unless user explicitly changed it)
+3. Run coherence checks:
    - New agent's role doesn't overlap with existing agents without justification
    - Bindings route correctly — no orphaned agents, no routing loops
    - Model config is complete (provider, model, fallbacks)
-3. Run integration check:
+4. Run integration check:
    - Spawn rules are consistent
    - Tool policies don't conflict
    - Channel assignments are valid
-4. Present results and offer follow-on skills:
+5. Present results and offer follow-on skills:
    - "Would you like to harden this system?" → `harden-workspace`
    - "Want to run a full validation?" → `validate-workspace`
 
