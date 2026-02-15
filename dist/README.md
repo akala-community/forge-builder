@@ -11,10 +11,6 @@ The Forge is a meta-agent that designs, builds, configures, and deploys multi-ag
 - [Quick Start](#quick-start)
 - [How It Works](#how-it-works)
 - [Skills Reference](#skills-reference)
-  - [Design Phase](#design-phase)
-  - [Enablement Phase](#enablement-phase)
-  - [Hardening & Operations](#hardening--operations)
-  - [Validation & Packaging](#validation--packaging)
 - [Workspace Files](#workspace-files)
 - [Agentic Patterns](#agentic-patterns)
 - [Examples](#examples)
@@ -35,7 +31,7 @@ bmad install forge
 
 Open your preferred channel (Discord, Telegram, WhatsApp, or TUI) and describe the system you want to build:
 
-```
+```text
 "I want a customer support system with a triage agent and three specialists
 for billing, technical issues, and general inquiries."
 ```
@@ -165,6 +161,21 @@ flowchart TD
 
 > Not every step is required. You can enter at any point — `add-agent` into an existing system, `harden-workspace` on an already-working setup, or `validate-workspace` as a standalone health check.
 
+### Session Model
+
+The Forge wakes up fresh each session. It reads its workspace files (SOUL.md, USER.md, recent memory) to restore context. What it learns gets written to memory files so future sessions can pick up where it left off.
+
+### Interaction Model
+
+Every skill follows the same pattern:
+1. The Forge analyzes your current state
+2. It proposes a plan with rationale
+3. You review, adjust, and approve
+4. The Forge executes and validates
+5. It offers the natural next step
+
+Nothing gets deployed without your sign-off.
+
 ---
 
 ## Skills Reference
@@ -173,43 +184,30 @@ Each skill has a two-letter trigger code. You can invoke skills by trigger or by
 
 ### Design Phase
 
-These skills help you architect your agent system from scratch.
-
 #### `recommend-pattern` (RP) — Advisory
 
-**What it does:** Analyzes your use case and recommends the best agentic pattern. Advisory only — no files generated.
+Analyzes your use case and recommends the best agentic pattern. Advisory only — no files generated.
 
 **When to use:** You have an idea but aren't sure what architecture fits.
 
-**Say something like:**
-- "What pattern should I use for a code review system?"
-- "Should I use routing or orchestrator-workers?"
-- "Help me choose between these approaches"
-
 **What you get:** Ranked pattern recommendations with trade-off analysis and a conceptual preview of how the system would look in OpenClaw.
 
-**Leads to:** `design-system` (when you're ready to build)
+**Leads to:** `design-system`
 
 ---
 
 #### `design-system` (DS) — Full Build
 
-**What it does:** End-to-end multi-agent system creation. Goes from a natural language description to a complete, deployable OpenClaw workspace.
+End-to-end multi-agent system creation. Goes from a natural language description to a complete, deployable OpenClaw workspace.
 
 **When to use:** You're ready to build a new multi-agent system from scratch.
-
-**Say something like:**
-- "Build me a research team that can investigate topics in parallel"
-- "Create a content pipeline with writer, editor, and fact-checker"
-- "Design a multi-agent system for automated code review"
 
 **What you get:**
 - Agentic pattern selection with rationale
 - Complete agent roster with roles and responsibilities
 - Workspace files for every agent (SOUL.md, AGENTS.md, etc.)
 - `openclaw.json` configuration with bindings, model config, and tool policies
-- Validation report
-- Deployment guidance
+- Validation report and deployment guidance
 
 **Execution flow:**
 1. Analyze use case (domain, scale, interaction model)
@@ -220,29 +218,15 @@ These skills help you architect your agent system from scratch.
 6. Validate the complete system
 7. Offer follow-on skills (equip tools, set up channels, harden)
 
-**Leads to:** `equip-agents`, `channel-setup`, `setup-knowledge`, `harden-workspace`
+**Leads to:** `equip-agents`, `channel-setup`, `setup-knowledge`, `setup-harness`, `harden-workspace`
 
 ---
 
 #### `add-agent` (AA) — Extend Existing System
 
-**What it does:** Safely adds one new agent to an existing workspace without breaking what's already running.
+Safely adds one new agent to an existing workspace without breaking what's already running. Reads your existing workspace, gathers requirements, generates workspace artifacts, merges config, and validates the extended system.
 
-**When to use:** You have a working system and want to add a new specialist.
-
-**Say something like:**
-- "Add a fact-checker agent to my content pipeline"
-- "I need another specialist for handling refunds"
-- "Add a monitoring agent that watches for errors"
-
-**What you get:** New agent workspace files, merged configuration, and a validation report confirming the extended system is consistent.
-
-**Execution flow:**
-1. Read your existing workspace and config
-2. Gather requirements for the new agent
-3. Generate workspace artifacts for the new agent
-4. Merge config, bindings, and pattern integration
-5. Validate the merged system
+**What you get:** New agent workspace files, merged configuration, and a validation report.
 
 **Leads to:** `harden-workspace`, `validate-workspace`
 
@@ -250,64 +234,23 @@ These skills help you architect your agent system from scratch.
 
 ### Enablement Phase
 
-These skills add infrastructure and tooling to your agent system.
-
 #### `equip-agents` (EA) — Tool Binding
 
-**What it does:** Turns capability statements ("this agent needs to search the web") into concrete tool bindings — MCP servers, APIs, and custom tools.
+Turns capability statements ("this agent needs to search the web") into concrete tool bindings — MCP servers, APIs, and custom tools.
 
 **When to use:** After designing your system, when agents need real tools to do their work.
 
-**Say something like:**
-- "Equip my agents with tools"
-- "Find MCP servers for my research team"
-- "What tools does each agent need?"
+**What you get:** Agent-to-tool mapping matrix, MCP server and API scaffold configurations, environment checklist (API keys, connection strings), and tool policy suggestions.
 
-**What you get:**
-- Agent-to-tool mapping matrix
-- MCP server and API scaffold configurations
-- Environment checklist (API keys, connection strings)
-- Tool policy suggestions (which tools need approval gates)
-
-**Execution flow:**
-1. Load your agent roster
-2. Derive tool requirements from each agent's capabilities
-3. Research available options (MCP servers first, then APIs, then custom)
-4. Present trade-offs and alternatives
-5. Confirm selections with you
-6. Scaffold configs and stubs
-7. Produce a tool plan document
-
-**Leads to:** `channel-setup`, `harden-workspace` (tool policy lockdown)
+**Leads to:** `harden-workspace`, `setup-knowledge`
 
 ---
 
 #### `channel-setup` (CS) — Communication Channels
 
-**What it does:** Designs the communication topology for your agent system. Maps each agent to a dedicated channel with categories, naming conventions, and per-channel welcome content. Currently supports Discord.
+Designs the communication topology for your agent system. Maps each agent to a dedicated channel with categories, naming conventions, and per-channel welcome content. Currently supports Discord.
 
-**When to use:** After your agents are designed and you need to set up where users interact with them.
-
-**Say something like:**
-- "Set up Discord channels for my agents"
-- "Create a channel layout for my workspace"
-- "How should I organize channels for my team?"
-
-**What you get:**
-- Categorized channel layout (e.g., Core, Features, Admin)
-- Per-channel configuration: name, description, topic, welcome message
-- Welcome messages written in each agent's voice with invocation instructions
-- Setup checklist for manual creation
-- Optional automation script for programmatic channel creation
-
-**Execution flow:**
-1. Load agent roster (names, roles, interaction patterns)
-2. Select channel platform (Discord currently)
-3. Generate channel plan with categories and naming
-4. Review and iterate with you
-5. Generate per-channel welcome messages and instructions
-6. Output complete channel setup document
-7. Optionally generate automation script
+**What you get:** Categorized channel layout, per-channel configuration, welcome messages in each agent's voice, setup checklist, and an optional automation script.
 
 **Leads to:** `harden-workspace`, `plan-operations`
 
@@ -315,20 +258,13 @@ These skills add infrastructure and tooling to your agent system.
 
 #### `setup-knowledge` (SK) — Memory Architecture
 
-**What it does:** Designs and configures the memory and knowledge architecture for your agent system. Recommends the right tier based on your needs.
-
-**When to use:** When your agents need to remember things across conversations — customer context, research findings, learned patterns.
-
-**Say something like:**
-- "Set up memory for my agents"
-- "I need a knowledge graph for cross-project learning"
-- "My agents should remember customer context"
+Designs and configures the memory and knowledge architecture for your agent system.
 
 **Memory tiers:**
 
 | Tier | Backend | Best For |
 |------|---------|----------|
-| Basic | Flat files (`memory/`) | Session logs, simple context |
+| Flat-file | `memory/` + `memory_search` (sqlite-vec) | Session logs, simple recall |
 | Vector | sqlite-vec / memory_search | Semantic search across past interactions |
 | Graph | Neo4j (neo4j-mcp) | Relationship mapping, cross-project patterns |
 
@@ -340,14 +276,7 @@ These skills add infrastructure and tooling to your agent system.
 
 #### `setup-harness` (SH) — Long-Running Resilience
 
-**What it does:** Configures your agents for long-duration tasks that span multiple sessions — checkpointing, heartbeat cadence, session bridging, and resume behavior.
-
-**When to use:** When agents need to work on tasks that take longer than a single session.
-
-**Say something like:**
-- "My research agent needs to work across multiple sessions"
-- "Set up checkpointing for long tasks"
-- "How do I make my agent resume where it left off?"
+Configures your agents for long-duration tasks that span multiple sessions — checkpointing, heartbeat cadence, session bridging, and resume behavior.
 
 **What you get:** Heartbeat and compaction settings, progress tracking configuration, session bridging setup, and recovery path verification.
 
@@ -357,20 +286,9 @@ These skills add infrastructure and tooling to your agent system.
 
 ### Hardening & Operations
 
-These skills prepare your system for production use.
-
 #### `harden-workspace` (HW) — Production Hardening
 
-**What it does:** Systematic production-readiness audit and remediation across six dimensions.
-
-**When to use:** When your agents are working and you want them production-grade.
-
-**Say something like:**
-- "Harden my workspace"
-- "Make my agents production-ready"
-- "Security audit my agent system"
-
-**Hardening dimensions:**
+Systematic production-readiness audit and remediation across six dimensions:
 
 | Dimension | What Gets Checked |
 |-----------|------------------|
@@ -389,26 +307,16 @@ These skills prepare your system for production use.
 
 #### `plan-operations` (PO) — Execution Modes
 
-**What it does:** Analyzes your completed system and configures how each agent runs — manually, on a schedule, via webhooks, or with human approval gates.
-
-**When to use:** After hardening, when you're ready to operationalize your system.
-
-**Say something like:**
-- "Plan my operations"
-- "Set up automation schedules"
-- "Which agents should run on cron?"
-- "Configure webhooks for my PR reviewer"
-
-**Execution modes:**
+Configures how each agent runs — manually, on a schedule, via webhooks, or with human approval gates.
 
 | Mode | Fits | OpenClaw Config |
 |------|------|----------------|
 | Manual | Direct user requests, creative tasks | Channel bindings (default) |
 | Cron/Heartbeat | Monitoring, periodic reports, data sync | `cron.enabled`, `heartbeat` settings |
 | Webhook | PR reviews, deployment triggers, form submissions | `hooks.enabled`, `hooks.mappings` |
-| Human-in-the-loop | Deployments, data modifications, financial ops | `tools.exec.ask`, `approvals.exec` |
+| Human-in-the-loop | Deployments, data modifications, financial ops | `tools.exec.ask`, `tools.exec.safeBins` |
 
-**What you get:** Per-agent execution mode classification, complete operations plan, implemented config sections in `openclaw.json`, and validation report.
+**What you get:** Per-agent execution mode classification, complete operations plan, and implemented config sections in `openclaw.json`.
 
 **Leads to:** `validate-workspace`, `export-package`
 
@@ -416,24 +324,9 @@ These skills prepare your system for production use.
 
 ### Validation & Packaging
 
-These skills verify and distribute your system.
-
 #### `validate-workspace` (VW) — Cross-Artifact Validation
 
-**What it does:** Read-only inspection of your entire workspace. Checks structural integrity, coherence, and hardening completeness.
-
-**When to use:** After any changes, before packaging, or as a periodic health check.
-
-**Say something like:**
-- "Validate my workspace"
-- "Check if everything is consistent"
-- "Is my setup ready for production?"
-
-**What gets checked:**
-- All required files exist and have correct structure
-- Cross-references resolve (skills reference valid patterns, configs reference valid agents)
-- Hardening checklist items are addressed
-- No contradictions between workspace files
+Read-only inspection of your entire workspace. Checks structural integrity, cross-reference consistency, hardening completeness, and inter-file coherence.
 
 **What you get:** Categorized findings (CRITICAL / WARNING / INFO), pass/fail verdict, and remediation guidance.
 
@@ -441,14 +334,7 @@ These skills verify and distribute your system.
 
 #### `export-package` (EP) — Bundle for Sharing
 
-**What it does:** Packages your workspace into a portable `.ocf.zip` file with provenance metadata and setup instructions.
-
-**When to use:** When your system is ready to share or deploy to another OpenClaw instance.
-
-**Say something like:**
-- "Export my workspace"
-- "Package this for deployment"
-- "Create a shareable bundle"
+Packages your workspace into a portable `.ocf.zip` file with provenance metadata and setup instructions.
 
 **What you get:** A `.ocf.zip` containing workspace files, skills, config, a `manifest.ocf.json` with version and compatibility info, and a setup prompt for first-run initialization.
 
@@ -456,13 +342,7 @@ These skills verify and distribute your system.
 
 #### `import-package` (IP) — Install Package
 
-**What it does:** Installs an `.ocf.zip` package into an OpenClaw instance with conflict-aware merging.
-
-**When to use:** When you receive a packaged workspace and want to install it.
-
-**Say something like:**
-- "Import this package"
-- "Install the workspace bundle"
+Installs an `.ocf.zip` package into an OpenClaw instance with conflict-aware merging.
 
 **What you get:** Installed workspace files, merged configuration (with conflict resolution), integrity verification report, and import event log.
 
@@ -473,7 +353,7 @@ These skills verify and distribute your system.
 When The Forge is deployed into OpenClaw, it uses these workspace files:
 
 | File | Purpose | Who Maintains It |
-|------|---------|-----------------|
+|------|---------| ------------------|
 | `SOUL.md` | Personality, principles, boundaries, voice | The Forge evolves it over time |
 | `IDENTITY.md` | Identity card — name, creature type, vibe, emoji | Mostly static |
 | `AGENTS.md` | Operational playbook — session startup, memory model, tools, safety rules | The Forge adds conventions |
@@ -556,7 +436,6 @@ graph TB
 - **Daily notes** (`memory/YYYY-MM-DD.md`) — Raw session logs. What happened, what was decided, what patterns were applied.
 - **Long-term memory** (`MEMORY.md`) — Curated insights distilled from daily notes. Cross-project lessons, pattern effectiveness ratings, architectural decisions.
 - **Knowledge graph** (Neo4j via neo4j-mcp) — Structured relationships: which patterns compose well, what configurations have been validated, how the schema has evolved.
-- **Semantic search** (sqlite-vec via memory_search) — Find past designs by use case, pattern, or problem description.
 
 ---
 
@@ -606,87 +485,37 @@ flowchart TD
 | **Autonomous Agent** | Open-ended tasks requiring tool use and judgment | Research assistant exploring a topic independently |
 | **Long-Running Harness** | Tasks spanning multiple sessions with checkpointing | Multi-day research with progress tracking |
 
-The Forge doesn't just name the pattern — it explains why it fits your use case, what the trade-offs are, and what the OpenClaw implementation looks like.
+The Forge explains why a pattern fits your use case, what the trade-offs are, and what the OpenClaw implementation looks like.
 
 ---
 
 ## Examples
 
-### Building a Customer Support System
+### Customer Support System (Routing)
 
-**You:** "I want a customer support system with a triage agent and three specialists — billing, technical, and general inquiries."
+**You:** "I want a customer support system with a triage agent and three specialists."
 
-**The Forge:**
-1. Analyzes the use case — distinct input categories needing specialist handling
-2. Recommends **Routing pattern** — bindings with match rules route to specialists
-3. Designs 4 agents: Triage Router, Billing Specialist, Technical Specialist, General Specialist
-4. Generates workspace files for each agent
-5. Generates `openclaw.json` with bindings, model config, tool policies
-6. Offers follow-on: `equip-agents` (bind CRM tools), `channel-setup` (Discord channels), `setup-knowledge` (customer memory)
-7. Validates and packages
+**The Forge:** Recommends Routing pattern. Designs 4 agents (Triage Router, Billing/Technical/General Specialists). Generates workspace files and `openclaw.json` with bindings. Offers follow-on: `equip-agents` (bind CRM tools), `channel-setup` (Discord channels), `setup-knowledge` (customer memory).
 
-### Building a Research Team
+### Research Team (Orchestrator-Workers)
 
 **You:** "I need a research team that can break down complex topics, investigate in parallel, and synthesize findings."
 
-**The Forge:**
-1. Recommends **Orchestrator-Workers pattern** — coordinator spawns specialist workers
-2. Designs agents: Research Coordinator + Topic Investigators (spawned dynamically via `sessions_spawn`)
-3. Sets up knowledge graph for accumulating findings
-4. Configures long-running harness for multi-session research
-5. Validates the complete system
+**The Forge:** Recommends Orchestrator-Workers pattern. Designs Research Coordinator + Topic Investigators (spawned dynamically via `sessions_spawn`). Sets up knowledge graph and long-running harness for multi-session research.
 
-### Adding a Fact-Checker to an Existing Pipeline
+### Adding an Agent to an Existing System
 
 **You:** "Add a fact-checker agent that reviews everything before it goes to the user."
 
-**The Forge:**
-1. Reads your existing workspace
-2. Designs the new agent as an **Evaluator-Optimizer** gate
-3. Generates its workspace files
-4. Merges config — preserving everything that already works
-5. Validates the extended system
-
-### Operationalizing a Monitoring System
-
-**You:** "I have a monitoring agent. It should check system health every 15 minutes during business hours and alert via Discord."
-
-**The Forge (plan-operations):**
-1. Classifies the agent as **Cron/Heartbeat** execution mode
-2. Configures: `heartbeat.every: "15m"`, `heartbeat.activeHours: {start: "09:00", end: "18:00"}`
-3. Routes heartbeat output to the monitoring Discord channel
-4. Sets up approval gates for any remediation actions
-5. Writes config to `openclaw.json`
-
-### Setting Up Discord Channels
-
-**You:** "Set up Discord channels for my 4-agent support system."
-
-**The Forge (channel-setup):**
-1. Reads the agent roster
-2. Proposes channel layout:
-   ```
-   SUPPORT
-   ├── #triage          → Triage Router
-   ├── #billing-support → Billing Specialist
-   ├── #tech-support    → Technical Specialist
-   └── #general-support → General Specialist
-
-   SYSTEM
-   ├── #system-status   → Health and notifications
-   └── #admin           → Workspace administration
-   ```
-3. Generates welcome messages in each agent's voice
-4. Produces setup checklist
-5. Optionally generates a Discord bot script to create channels programmatically
+**The Forge:** Reads existing workspace, designs the new agent as an Evaluator-Optimizer gate, generates workspace files, merges config preserving existing setup, and validates the extended system.
 
 ---
 
 ## Build Artifacts
 
-Everything in `dist/` is generated by the Forge Builder (Morgan) and should not be edited by hand.
+The Forge Builder (Morgan) generates everything in `dist/`. Do not edit these files by hand.
 
-```
+```text
 dist/
 ├── workspace/              # OpenClaw workspace files for The Forge
 │   ├── SOUL.md
@@ -741,7 +570,7 @@ Use a `.ocf.zip` release with the `import-package` skill for automated installat
 - Check that workspace files are in expected locations
 
 ### "Generated config has validation errors"
-- Run `update-reference-data` to sync The Forge's config reference with your OpenClaw version
+- Ask The Forge to update its reference data (this triggers the builder's `update-reference-data` workflow)
 - Then regenerate the config
 
 ### "Knowledge graph setup fails"
