@@ -58,13 +58,55 @@ You review and approve at each step. The Forge builds; you decide.
 
 The Forge covers the full lifecycle of a multi-agent system through **12 skills** organized into four phases:
 
-```
-  DESIGN            ENABLEMENT          HARDENING           PACKAGING
-  ──────            ──────────          ─────────           ─────────
-  recommend-pattern  equip-agents       harden-workspace    validate-workspace
-  design-system      channel-setup      plan-operations     export-package
-  add-agent          setup-knowledge                        import-package
-                     setup-harness
+```mermaid
+graph LR
+    subgraph DESIGN
+        RP["recommend-pattern<br/>(RP)"]
+        DS["design-system<br/>(DS)"]
+        AA["add-agent<br/>(AA)"]
+    end
+
+    subgraph ENABLEMENT
+        EA["equip-agents<br/>(EA)"]
+        CS["channel-setup<br/>(CS)"]
+        SK["setup-knowledge<br/>(SK)"]
+        SH["setup-harness<br/>(SH)"]
+    end
+
+    subgraph HARDENING
+        HW["harden-workspace<br/>(HW)"]
+        PO["plan-operations<br/>(PO)"]
+    end
+
+    subgraph PACKAGING
+        VW["validate-workspace<br/>(VW)"]
+        EP["export-package<br/>(EP)"]
+        IP["import-package<br/>(IP)"]
+    end
+
+    RP --> DS
+    DS --> EA
+    DS --> CS
+    DS --> SK
+    DS --> SH
+    AA --> HW
+    EA --> CS
+    EA --> HW
+    CS --> HW
+    CS --> PO
+    SK --> HW
+    SH --> HW
+    HW --> PO
+    HW --> VW
+    PO --> VW
+    PO --> EP
+    VW --> EP
+    EP --> IP
+
+    style DESIGN fill:#2d4a7a,stroke:#4a90d9,color:#fff
+    style ENABLEMENT fill:#2d6a4f,stroke:#52b788,color:#fff
+    style HARDENING fill:#7a4a2d,stroke:#d99a4a,color:#fff
+    style PACKAGING fill:#4a2d6a,stroke:#9a4ad9,color:#fff
 ```
 
 Each skill is a focused capability. You can run them individually or let The Forge chain them together as part of a full system build.
@@ -83,6 +125,45 @@ Every skill follows the same pattern:
 5. It offers the natural next step
 
 Nothing gets deployed without your sign-off.
+
+### End-to-End Build Flow
+
+A typical full system build follows this path from idea to deployed package:
+
+```mermaid
+flowchart TD
+    A["User describes<br/>what they need"] --> B{"Know which<br/>pattern?"}
+    B -- No --> RP["RP: Recommend Pattern<br/><i>Advisory — explains trade-offs</i>"]
+    B -- Yes --> DS
+    RP --> DS["DS: Design System<br/><i>Full architecture + workspace generation</i>"]
+    DS --> EA["EA: Equip Agents<br/><i>Bind MCP servers, APIs, tools</i>"]
+    EA --> CS["CS: Channel Setup<br/><i>Discord/platform channel layout</i>"]
+    DS --> SK["SK: Setup Knowledge<br/><i>Memory tiers + knowledge graph</i>"]
+    DS --> SH["SH: Setup Harness<br/><i>Long-running task resilience</i>"]
+    EA --> HW
+    CS --> HW
+    SK --> HW
+    SH --> HW
+    HW["HW: Harden Workspace<br/><i>Production-readiness audit</i>"] --> PO["PO: Plan Operations<br/><i>Cron, webhooks, approvals</i>"]
+    PO --> VW["VW: Validate Workspace<br/><i>Cross-artifact consistency check</i>"]
+    VW --> EP["EP: Export Package<br/><i>Bundle as .ocf.zip</i>"]
+    EP --> DEPLOY["Deploy to OpenClaw"]
+
+    style A fill:#1a1a2e,stroke:#e94560,color:#fff
+    style DS fill:#2d4a7a,stroke:#4a90d9,color:#fff
+    style RP fill:#2d4a7a,stroke:#4a90d9,color:#fff
+    style EA fill:#2d6a4f,stroke:#52b788,color:#fff
+    style CS fill:#2d6a4f,stroke:#52b788,color:#fff
+    style SK fill:#2d6a4f,stroke:#52b788,color:#fff
+    style SH fill:#2d6a4f,stroke:#52b788,color:#fff
+    style HW fill:#7a4a2d,stroke:#d99a4a,color:#fff
+    style PO fill:#7a4a2d,stroke:#d99a4a,color:#fff
+    style VW fill:#4a2d6a,stroke:#9a4ad9,color:#fff
+    style EP fill:#4a2d6a,stroke:#9a4ad9,color:#fff
+    style DEPLOY fill:#0d7377,stroke:#14ffec,color:#fff
+```
+
+> Not every step is required. You can enter at any point — `add-agent` into an existing system, `harden-workspace` on an already-working setup, or `validate-workspace` as a standalone health check.
 
 ---
 
@@ -411,11 +492,66 @@ Every time The Forge starts a session:
 5. Loads the pattern library index
 6. Checks for active designs in progress
 
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as The Forge
+    participant W as Workspace Files
+    participant M as Memory Layer
+    participant K as Knowledge Graph
+
+    Note over F: Session starts (fresh context)
+    F->>W: Read SOUL.md (identity + principles)
+    F->>W: Read USER.md (user preferences)
+    F->>M: Read memory/today.md + yesterday.md
+    F->>M: Read MEMORY.md (main sessions)
+    F->>W: Load pattern library index
+    F->>W: Check active designs in progress
+    Note over F: Context restored — ready to work
+    U->>F: "Build me a research team..."
+    F->>K: Search past designs (memory_search)
+    F->>U: Propose architecture + pattern
+    U->>F: Approve / adjust
+    F->>W: Generate workspace files
+    F->>M: Log session to memory/today.md
+    Note over F: Session ends — knowledge persists in files
+```
+
 This happens automatically. You just start talking.
 
 ### Memory Model
 
 The Forge uses a layered memory system:
+
+```mermaid
+graph TB
+    subgraph "Session Layer"
+        S["Active Session Context"]
+    end
+
+    subgraph "File Layer"
+        D["memory/YYYY-MM-DD.md<br/><i>Daily raw session logs</i>"]
+        LT["MEMORY.md<br/><i>Curated long-term insights</i>"]
+    end
+
+    subgraph "Structured Layer"
+        V["sqlite-vec<br/>(memory_search)<br/><i>Semantic search</i>"]
+        G["Neo4j<br/>(neo4j-mcp)<br/><i>Knowledge graph</i>"]
+    end
+
+    S -- "writes at session end" --> D
+    D -- "distilled periodically" --> LT
+    LT -- "indexed for retrieval" --> V
+    S -- "queries & updates" --> G
+    G -- "pattern relationships<br/>cross-project learning<br/>schema evolution" --> S
+    V -- "search by use case,<br/>pattern, or problem" --> S
+
+    style S fill:#2d4a7a,stroke:#4a90d9,color:#fff
+    style D fill:#1a1a2e,stroke:#e94560,color:#fff
+    style LT fill:#1a1a2e,stroke:#e94560,color:#fff
+    style V fill:#2d6a4f,stroke:#52b788,color:#fff
+    style G fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
 - **Daily notes** (`memory/YYYY-MM-DD.md`) — Raw session logs. What happened, what was decided, what patterns were applied.
 - **Long-term memory** (`MEMORY.md`) — Curated insights distilled from daily notes. Cross-project lessons, pattern effectiveness ratings, architectural decisions.
@@ -427,6 +563,38 @@ The Forge uses a layered memory system:
 ## Agentic Patterns
 
 The Forge selects from seven proven patterns based on your use case:
+
+```mermaid
+flowchart TD
+    START["What does your<br/>system need to do?"] --> Q1{"Can tasks run<br/>independently?"}
+
+    Q1 -- "Yes, fan out" --> PAR["Parallelization<br/><i>Run subtasks simultaneously</i>"]
+    Q1 -- "No, sequential" --> Q2{"Fixed steps or<br/>dynamic decomposition?"}
+
+    Q2 -- "Fixed pipeline" --> PC["Prompt Chaining<br/><i>Step-by-step with quality gates</i>"]
+    Q2 -- "Dynamic" --> OW["Orchestrator-Workers<br/><i>Coordinator spawns workers</i>"]
+
+    START --> Q3{"Does input need<br/>classification?"}
+    Q3 -- "Yes, route to<br/>specialists" --> RT["Routing<br/><i>Classify and direct</i>"]
+
+    START --> Q4{"Is iterative<br/>refinement needed?"}
+    Q4 -- "Yes, feedback<br/>loops" --> EO["Evaluator-Optimizer<br/><i>Generate, evaluate, improve</i>"]
+
+    START --> Q5{"Open-ended<br/>exploration?"}
+    Q5 -- "Yes, tool use<br/>+ judgment" --> AA["Autonomous Agent<br/><i>Self-directed with tools</i>"]
+
+    START --> Q6{"Spans multiple<br/>sessions?"}
+    Q6 -- "Yes, needs<br/>checkpointing" --> LR["Long-Running Harness<br/><i>Checkpoint + resume</i>"]
+
+    style START fill:#1a1a2e,stroke:#e94560,color:#fff
+    style PC fill:#2d4a7a,stroke:#4a90d9,color:#fff
+    style RT fill:#2d4a7a,stroke:#4a90d9,color:#fff
+    style PAR fill:#2d4a7a,stroke:#4a90d9,color:#fff
+    style OW fill:#2d4a7a,stroke:#4a90d9,color:#fff
+    style EO fill:#2d4a7a,stroke:#4a90d9,color:#fff
+    style AA fill:#2d4a7a,stroke:#4a90d9,color:#fff
+    style LR fill:#2d4a7a,stroke:#4a90d9,color:#fff
+```
 
 | Pattern | Best For | Example |
 |---------|----------|---------|
