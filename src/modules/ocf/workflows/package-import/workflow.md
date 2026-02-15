@@ -1,15 +1,15 @@
 ---
 name: package-import
-description: Receive and install an OCF package (.ocf.zip + setup prompt) on a running OpenClaw instance
+description: Import and install an OCF workspace package (.ocf.zip)
 web_bundle: true
-installed_path: '{project-root}/src/modules/ocf/workflows/package-import'
+installed_path: '{project-root}/_bmad/ocf/workflows/package-import'
 ---
 
 # Package Import
 
-**Goal:** Receive an .ocf.zip archive + companion setup prompt and execute the installation on a running OpenClaw instance — extracting workspace files, merging configuration, registering agents, and activating the system.
+**Goal:** Receive an `.ocf.zip` workspace package, validate its contents, install workspace files into the target directory, merge configuration into the existing `openclaw.json`, and verify the installation is complete.
 
-**Your Role:** In addition to your name, communication_style, and persona, you are also an installation specialist (Cog / Gear Wright) performing systematic package import on an OpenClaw instance. You bring expertise in workspace architecture, configuration merging, and agent registration, while the user brings their package and target environment context. Work together as equals.
+**Your Role:** In addition to your name, communication_style, and persona, you are also an installation specialist (Cog / Gear Wright) performing systematic package installation. You bring expertise in workspace architecture, configuration merging, and conflict resolution, while the user provides the package and target workspace context. Your job is to be precise, methodical, and thorough.
 
 ---
 
@@ -20,25 +20,25 @@ installed_path: '{project-root}/src/modules/ocf/workflows/package-import'
 - **Micro-file Design**: Each step is a self contained instruction file that is a part of an overall workflow that must be followed exactly
 - **Just-In-Time Loading**: Only the current step file is in memory - never load future step files until told to do so
 - **Sequential Enforcement**: Sequence within the step files must be completed in order, no skipping or optimization allowed
-- **Append-Only Building**: Build the installation report by appending content as directed to the output file
+- **Append-Only Building**: Build the installation report by following the sequence as directed
 
 ### Step Processing Rules
 
 1. **READ COMPLETELY**: Always read the entire step file before taking any action
 2. **FOLLOW SEQUENCE**: Execute all numbered sections in order, never deviate
-3. **AUTO-PROCEED**: Steps 02 and 04 auto-proceed without user menus
-4. **WAIT FOR INPUT**: Step 03 pauses for conflict resolution if needed
-5. **SAVE STATE**: Append findings to the installation report before loading next step
-6. **LOAD NEXT**: When directed, load, read entire file, then execute the next step file
+3. **WAIT FOR INPUT**: If a menu is presented, halt and wait for user selection
+4. **CHECK CONTINUATION**: If the step has a menu with Continue as an option, only proceed to next step when user selects 'C' (Continue)
+5. **LOAD NEXT**: When directed, load, read entire file, then execute the next step file
 
 ### Critical Rules (NO EXCEPTIONS)
 
-- 🛑 **NEVER** load multiple step files simultaneously
-- 📖 **ALWAYS** read entire step file before execution
-- 🚫 **NEVER** skip steps or optimize the sequence
-- 🎯 **ALWAYS** follow the exact instructions in the step file
-- 📋 **NEVER** create mental todo lists from future steps
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT In your Agent communication style with the config `{communication_language}`
+- **NEVER** load multiple step files simultaneously
+- **ALWAYS** read entire step file before execution
+- **NEVER** skip steps or optimize the sequence
+- **ALWAYS** follow the exact instructions in the step file
+- **ALWAYS** halt at menus and wait for user input
+- **NEVER** create mental todo lists from future steps
+- YOU MUST ALWAYS SPEAK OUTPUT in your Agent communication style with the config `{communication_language}`
 
 ---
 
@@ -46,10 +46,10 @@ installed_path: '{project-root}/src/modules/ocf/workflows/package-import'
 
 ### 1. Configuration Loading
 
-Load and read full config from {project-root}/_bmad/bmb/config.yaml and resolve:
+Load and read full config from {project-root}/_bmad/ocf/config.yaml (if it exists, otherwise fall back to {project-root}/_bmad/bmb/config.yaml) and resolve:
 
-- `project_name`, `output_folder`, `user_name`, `communication_language`, `document_output_language`, `bmb_creations_output_folder`
+- `project_name`, `output_folder`, `user_name`, `communication_language`, `document_output_language`, `ocf_output_folder`
 
 ### 2. First Step Execution
 
-Load, read the full file and then execute `./steps-c/step-01-receive.md` to begin the package import.
+Load, read the full file and then execute `./steps-c/step-01-receive-package.md` to begin the package import workflow.

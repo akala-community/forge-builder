@@ -1,0 +1,16 @@
+change_type,primary_artifact,secondary_artifacts,propagation_rule
+persona_change,SOUL.md,"AGENTS.md,USER.md,IDENTITY.md",Update directives and interaction patterns to match new persona
+name_change,IDENTITY.md,"SOUL.md,AGENTS.md,USER.md,MEMORY.md",Replace agent name references across all workspace files
+identity_change,IDENTITY.md,"SOUL.md,AGENTS.md",Update personality and directives to reflect new identity fields
+skill_addition,skills/,AGENTS.md,Add skill reference to AGENTS.md directives if appropriate
+skill_removal,skills/,AGENTS.md,Remove skill references from AGENTS.md directives
+skill_modification,skills/,AGENTS.md,Review AGENTS.md for alignment with updated skill capabilities
+communication_style_change,SOUL.md,"USER.md,IDENTITY.md",Update interaction patterns and identity to match new style
+boundary_change,AGENTS.md,"SOUL.md,TOOLS.md",Propagate new boundaries to personality and tool notes
+heartbeat_change,HEARTBEAT.md,"AGENTS.md,BOOT.md",Ensure heartbeat tasks align with agent capabilities and boot sequence
+boot_change,BOOT.md,AGENTS.md,Verify boot instructions reference actual capabilities
+memory_update,MEMORY.md,AGENTS.md,Review if curated memory affects agent directives
+tool_change,TOOLS.md,AGENTS.md,Verify tool notes align with agent capability definitions
+user_preference_change,USER.md,"SOUL.md,AGENTS.md",Update personality and directives to accommodate new user context
+config_change,openclaw.json,"AGENTS.md,skills/",Verify workspace and model settings align with agent expectations
+bootstrap_change,BOOTSTRAP.md,AGENTS.md,Ensure first-run script aligns with agent role

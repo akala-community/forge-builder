@@ -1,51 +1,52 @@
 ---
 name: 'step-01-load-workspace'
-description: 'Get workspace path, inventory artifacts, initialize validation report'
+description: 'Get workspace path from user, select check categories, inventory all workspace artifacts, initialize validation report'
 
 nextStepFile: './step-02-structural-checks.md'
-validationRules: '../data/workspace-validation-rules.md'
-reportTemplate: '../templates/validation-report-template.md'
-validationReportOutput: '{ocf_output_folder}/validation-report-{workspace_name}-{current_date}.md'
+validationRulesRef: '../data/workspace-validation-rules.md'
+reportTemplateRef: '../templates/validation-report-template.md'
 ---
 
 # Step 1: Load Workspace
 
 ## STEP GOAL:
 
-To get the workspace path from the user, inventory all artifacts present in the workspace, and initialize the validation report.
+To get the workspace path from the user, determine which validation check categories to run, inventory all artifacts found in the workspace, and initialize the validation report from the template.
 
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
 ### Universal Rules:
 
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step, ensure entire file is read
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT In your Agent communication style with the config `{communication_language}`
+- CRITICAL: Read the complete step file before taking any action
+- CRITICAL: When loading next step with auto-proceed, ensure entire file is read
+- YOU MUST ALWAYS SPEAK OUTPUT in your Agent communication style with the config `{communication_language}`
 
 ### Role Reinforcement:
 
-- ✅ You are a configuration validation specialist (Cog / Gear Wright)
-- ✅ Systematic, thorough, objective
-- ✅ You bring workspace architecture expertise
+- You are a precision configuration validator (Cog / Gear Wright)
+- Systematic, thorough, objective -- reports facts, not opinions
+- You bring expertise in OpenClaw workspace architecture and agent configuration standards
 
 ### Step-Specific Rules:
 
-- 🎯 Focus ONLY on getting workspace path and inventorying artifacts
-- 🚫 FORBIDDEN to run any validation checks yet — that comes in steps 02-04
-- 💬 Ask for workspace path if not provided
-- ⚙️ If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context
+- Focus ONLY on receiving the workspace path, inventorying artifacts, and initializing the report
+- FORBIDDEN to run any validation checks -- those begin in step 02
+- FORBIDDEN to modify any workspace files -- this is a read-only workflow
+- Ask for workspace path if not provided
+- If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context
 
 ## EXECUTION PROTOCOLS:
 
-- 🎯 Get workspace path and verify it exists
-- 💾 Create validation report from template
-- 📖 Inventory all files and directories in workspace
-- 🚫 DO NOT start checking file contents yet
+- Get workspace path and verify it exists
+- Ask which check categories to run
+- Inventory all files and directories in the workspace
+- Initialize the validation report from the template
+- Auto-proceed to step 02
 
 ## CONTEXT BOUNDARIES:
 
-- User provides workspace path (or it may come from routing)
-- This is the initialization step — gather inputs only
+- User provides the workspace directory path (or it may come from routing)
+- This is the initialization step -- gather inputs and prepare only
 - No prior context needed
 - Dependencies: none
 
@@ -62,99 +63,113 @@ To get the workspace path from the user, inventory all artifacts present in the 
 
 "**Workspace Validation**
 
-I'll check your OpenClaw workspace for internal consistency across all artifacts.
+I'll validate your OpenClaw agent workspace for structural completeness, cross-artifact coherence, and production hardening.
 
-**Please provide the path to the workspace you want to validate:**
-
-This should be the directory containing your agent's SOUL.md, AGENTS.md, and other workspace files."
+**Please provide the path to the workspace directory to validate:**"
 
 Wait for user to provide the path.
 
 ### 2. Verify Workspace Exists
 
-Check that the provided path exists and is a directory. If it doesn't exist:
+Check that the provided path exists and is a directory. If it does not exist:
 
-"**Error:** The path `{provided_path}` does not exist or is not a directory. Please provide a valid workspace path."
+"**Error:** The path `{provided_path}` does not exist or is not a valid directory. Please provide a valid workspace path."
 
-### 3. Select Checks to Run
+Wait for a corrected path.
+
+### 3. Select Check Categories
 
 "**Which validation checks would you like to run?**
 
-- **[A]ll** — Run all checks (structural, coherence, hardening) *(Recommended)*
-- **[S]tructural** — File presence and well-formedness only
-- **[C]oherence** — Cross-artifact consistency only
-- **[H]ardening** — Security and resilience only"
+1. **All** -- Run structural, coherence, and hardening checks (recommended)
+2. **Structural only** -- File presence, well-formedness, directory structure
+3. **Coherence only** -- Cross-artifact consistency
+4. **Hardening only** -- Security, resilience, operational readiness
 
-Wait for selection. Default to All if user says yes/continue/proceed.
+Enter a number (1-4), or press Enter for 'All'."
+
+Wait for user input. Record the selected categories. Default to "All" if no input or Enter.
+
+Map selection:
+- 1 or "all" or Enter: run steps 02, 03, 04
+- 2 or "structural": run step 02, skip steps 03 and 04
+- 3 or "coherence": run step 03, skip steps 02 and 04
+- 4 or "hardening": run step 04, skip steps 02 and 03
 
 ### 4. Inventory Workspace Artifacts
 
-List ALL files and directories found in the workspace:
+"**Scanning workspace:** `{workspace_path}`..."
 
-"**Inventorying workspace artifacts...**"
+Read the workspace directory and list all files and subdirectories found. Organize them as follows:
 
-Use file I/O to list the workspace contents. Record:
-- All `.md` files at root level
-- All subdirectories (memory/, skills/, etc.)
-- All files within subdirectories
-- Whether openclaw.json exists (in workspace parent or project root)
+**Root-level files:**
+- List every file in the workspace root (e.g., AGENTS.md, SOUL.md, openclaw.json, etc.)
+- Note each file's approximate size (empty / non-empty)
 
-### 5. Create Validation Report
+**Directories:**
+- List every subdirectory (e.g., memory/, skills/)
+- For each subdirectory, list file count and names
 
-Load {reportTemplate} and create the validation report at {validationReportOutput}.
+Record the full inventory for use throughout the validation.
 
-Replace template placeholders:
-- `{current_date}` → today's date
-- `{workspace_path}` → the workspace path
-- `{checks_run}` → which checks were selected
+### 5. Initialize Validation Report
 
-Replace the "## Workspace Inventory" section with the actual inventory:
+Load {reportTemplateRef} and create the validation report by filling in the header fields:
 
-```markdown
-## Workspace Inventory
+- **Workspace Path:** the verified workspace path
+- **Validation Date:** current date
+- **Checks Requested:** the selected check categories
+- **Overall Status:** PENDING (will be calculated in step 05)
 
-**Workspace Path:** {workspace_path}
-**Files Found:** {count}
+Fill in the **Workspace Inventory** section with the file and directory listings from section 4.
 
-### Root Files
-- {list each .md file with ✅ or ❌ status}
+Leave all check result sections empty -- they will be populated by steps 02 through 04.
 
-### Directories
-- {list each directory and file count within}
+### 6. Present Inventory Summary and Auto-Proceed
 
-### Configuration
-- openclaw.json: {found/not found} at {path}
-```
-
-### 6. Present Inventory and Auto-Proceed
-
-"**Workspace loaded and inventoried.**
-
-**Path:** `{workspace_path}`
-**Files found:** {count}
-**Checks to run:** {selection}
-
-**Proceeding to validation checks...**"
-
-Save the report, then immediately load, read entire file, then execute {nextStepFile}.
+"**Workspace Inventory**
 
 ---
 
-## 🚨 SYSTEM SUCCESS/FAILURE METRICS
+**Path:** `{workspace_path}`
+**Checks:** {selected_categories}
 
-### ✅ SUCCESS:
+**Files found ({count}):**
+{list of root files}
 
-- Workspace path obtained and verified
-- Check selection obtained
-- All artifacts inventoried
-- Validation report initialized
-- Auto-proceeding to structural checks
+**Directories found ({count}):**
+{list of directories with file counts}
 
-### ❌ SYSTEM FAILURE:
+---
 
-- Not verifying workspace exists
-- Starting validation checks before inventory
-- Not creating the validation report
-- Halting when should auto-proceed
+**Proceeding with validation checks...**"
 
-**Master Rule:** This is the init step. Get inputs, inventory, initialize report, then auto-proceed. DO NOT start checking file contents.
+**Auto-proceed:** Load, read entire file, then execute {nextStepFile}.
+
+**EXCEPTION:** If the user selected a specific category that skips step 02:
+- If "coherence only" was selected: Skip to `./step-03-coherence-checks.md`
+- If "hardening only" was selected: Skip to `./step-04-hardening-checks.md`
+
+---
+
+## SYSTEM SUCCESS/FAILURE METRICS
+
+### SUCCESS:
+
+- Workspace path obtained and verified as valid directory
+- Check categories selected
+- All workspace artifacts inventoried (files and directories)
+- Validation report initialized from template with inventory populated
+- Inventory summary presented to user
+- Auto-proceeding to the appropriate next step
+
+### FAILURE:
+
+- Not verifying the workspace directory exists
+- Not asking which checks to run
+- Not inventorying all files and directories
+- Running any validation checks in this step
+- Modifying any workspace files
+- Not initializing the report from the template
+
+**Master Rule:** This is the init step. Get the workspace path, inventory its contents, initialize the report. DO NOT run any validation checks or modify any files.

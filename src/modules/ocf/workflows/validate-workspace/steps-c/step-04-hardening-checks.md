@@ -1,127 +1,219 @@
 ---
 name: 'step-04-hardening-checks'
-description: 'Verify security, resilience, and operational hardening'
+description: 'Validate security, resilience, and operational hardening: memory directives, tool policies, boundaries, failover, compaction, safety'
 
 nextStepFile: './step-05-report.md'
-validationRules: '../data/workspace-validation-rules.md'
-validationReportOutput: '{validationReportOutput}'
+validationRulesRef: '../data/workspace-validation-rules.md'
 ---
 
 # Step 4: Hardening Checks
 
 ## STEP GOAL:
 
-Verify security, resilience, and operational hardening -- boundaries, safety rules, model failover, heartbeat, sandbox, tool execution security, memory directives, memory search config, self-correction, and group chat behavior.
+To verify the workspace is configured for production-grade operation -- checking memory directives, memory backend configuration, tool policies, operational boundaries, model failover chains, compaction settings, and safety guardrails.
 
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
-- DO NOT BE LAZY - CHECK EVERY HARDENING RULE
-- Read the complete step file before taking any action
-- When loading next step, ensure entire file is read
-- Validation does NOT stop for user input - auto-proceed through all checks
-- If any instruction references a tool you lack access to, achieve the outcome in your main context
+### Universal Rules:
+
+- CRITICAL: Read the complete step file before taking any action
+- CRITICAL: When loading next step, ensure entire file is read
 - YOU MUST ALWAYS SPEAK OUTPUT in your Agent communication style with the config `{communication_language}`
-- Focus ONLY on hardening checks -- structural was step 02, coherence was step 03
-- Report findings as [PASS], [FAIL], or [WARN] per check
-- You MUST actually read AGENTS.md, SOUL.md, and openclaw.json content
-- If a required file was missing, mark checks involving it as [SKIP]
+
+### Role Reinforcement:
+
+- You are a precision configuration validator (Cog / Gear Wright)
+- Systematic, thorough, objective -- reports facts, not opinions
+- You bring expertise in production hardening, security posture, and operational resilience
+
+### Step-Specific Rules:
+
+- Focus ONLY on hardening validation (security, resilience, operational readiness)
+- FORBIDDEN to re-run structural or coherence checks -- those were steps 02 and 03
+- FORBIDDEN to modify any workspace files -- this is a read-only workflow
+- If a required file is missing (detected in step 02), skip checks that depend on it and record as "SKIPPED - required file not found"
+- Hardening checks use a mix of ERROR, WARNING, and INFO severities -- follow the rules document precisely
+- If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context
+
+## EXECUTION PROTOCOLS:
+
+- Load validation rules for hardening checks
+- Read relevant workspace files (AGENTS.md, SOUL.md, openclaw.json)
+- Run all hardening checks (H-01 through H-07) against the workspace
+- Record each result with severity and detail
+- Append findings to the validation report
+- Auto-proceed to step 05
+
+## CONTEXT BOUNDARIES:
+
+- Workspace path from step 01
+- Workspace file inventory from step 01
+- Structural check results from step 02 (to know which files exist and if openclaw.json is valid)
+- Validation report (with structural and coherence results) from previous steps
+- Dependencies: step 01 must be complete; steps 02 and 03 results available if they ran
 
 ## MANDATORY SEQUENCE
 
 **CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
 
-### 1. Load Validation Rules
+### 1. Load Hardening Validation Rules
 
-Load {validationRules} and focus on the "## Hardening Checks" section.
+Load {validationRulesRef} and read the **Category 3: Hardening Checks** section. Use rules H-01 through H-07 as the check criteria for this step.
 
-### 2. Read Workspace Files
+### 2. Read Workspace Files for Hardening Analysis
 
-Read (if not already read): AGENTS.md, SOUL.md, openclaw.json (if exists).
+Read the following workspace files (if they exist). If a file does not exist, note it as unavailable and skip checks that depend on it.
 
-### 3. Check Boundaries (SOUL.md)
+- `AGENTS.md` -- for memory directives and safety sections
+- `SOUL.md` -- for boundaries
+- `openclaw.json` -- for memorySearch, tools, model, compaction configuration
 
-- **## Boundaries section exists** -- [PASS] or [FAIL]
-- **Privacy boundaries:** search for "private", "privacy", "stay private", "confidential" -- [PASS] or [FAIL]
-- **External action rules:** search for "ask before", "ask first", "external", "sending" -- [PASS] or [FAIL]
-- **Scope limits:** search for domain/scope limitations in SOUL.md or AGENTS.md -- [PASS] or [WARN]
+### 3. Check Memory Directives in AGENTS.md (Rule H-01)
 
-### 4. Check Safety Directives (AGENTS.md)
+**If AGENTS.md exists:**
 
-- **## Safety section exists** -- [PASS] or [FAIL]
-- **No-exfiltration rule:** search for "exfiltrate", "private data" -- [PASS] or [FAIL]
-- **Destructive command warning:** search for "destructive", "rm", "trash", "delete" -- [PASS] or [WARN]
+- Search AGENTS.md for memory-related sections or directives
+- Look for keywords: memory, remember, recall, persist, save, store, forget, retention
+- PASS if memory directives are found with detail noting what was found (e.g., "Memory section found with directives for when to persist and recall")
+- WARNING if no memory directives found with detail: "AGENTS.md does not contain explicit memory directives. Production agents should have clear instructions about memory usage."
 
-### 5. Check Model Failover (openclaw.json)
+**If AGENTS.md is missing:**
+- Record as SKIPPED
 
-If openclaw.json exists: check `agents.list[].model.fallbacks` -- [PASS] or [WARN].
-If no openclaw.json: [WARN] "Cannot verify failover."
+### 4. Check Memory Backend Configuration (Rule H-02)
 
-### 6. Check Heartbeat Configuration (openclaw.json)
+**If openclaw.json does not exist:**
+- Record as INFO with detail: "No openclaw.json found -- memory backend configuration not applicable"
 
-If openclaw.json exists: check `agents.list[].heartbeat` for `every`, optionally `activeHours` and `model` -- [PASS] or [WARN].
-If no openclaw.json: [WARN] "Cannot verify heartbeat config."
+**If openclaw.json exists:**
 
-### 7. Check Sandbox Configuration (openclaw.json)
+- Check for `memorySearch` configuration block
+- Verify `memorySearch.enabled` is true
+- Verify `memorySearch.provider` is set (has a value)
+- Verify `memorySearch.store` is set (has a value)
+- PASS if all three are configured correctly
+- WARNING for each missing or disabled field with specific detail:
+  - "memorySearch.enabled is false or missing -- memory search is disabled"
+  - "memorySearch.provider is not set -- no memory provider configured"
+  - "memorySearch.store is not set -- no memory store configured"
 
-If openclaw.json exists: check `agents.list[].sandbox` for `mode` and `workspaceAccess` -- [PASS] or [WARN].
-Non-main sessions should have sandbox configured for isolation.
-If no openclaw.json: [WARN] "Cannot verify sandbox config."
+### 5. Check Tool Policies (Rule H-03)
 
-### 8. Check Tool Execution Security (openclaw.json)
+**If openclaw.json does not exist:**
+- Record as INFO with detail: "No openclaw.json found -- tool policy configuration not applicable"
 
-If openclaw.json exists:
-- Check `agents.list[].tools.exec.security` is set -- [PASS] or [WARN]
-- Check `tools.profile` is set or explicit `tools.allow`/`tools.deny` rules exist -- [PASS] or [WARN]
+**If openclaw.json exists:**
 
-If no openclaw.json: [WARN] "Cannot verify tool execution security."
+- Check for `tools` configuration block
+- Check `tools.profile` value:
+  - If set to one of "minimal", "coding", "messaging", "full": PASS with detail noting the profile
+  - If missing: WARNING with detail "tools.profile not set -- recommend setting an explicit tool profile"
+- Report any `tools.allow` entries (additional tools allowed)
+- Report any `tools.deny` entries (tools explicitly denied)
+- Check `tools.exec` setting (external command execution)
+- Check `tools.web` setting (web access)
+- Compile a summary of the tool security posture
 
-### 9. Check Memory Directives (AGENTS.md)
+### 6. Check Boundaries in SOUL.md (Rule H-04)
 
-- **Daily log directive:** search for "memory/YYYY-MM-DD.md", "daily notes", "daily logs" -- [PASS] or [FAIL]
-- **Long-term memory directive:** search for MEMORY.md references -- [PASS] or [FAIL]
-- **Write-it-down rule:** search for "write it down", "mental notes", "Text > Brain" -- [PASS] or [WARN]
+**If SOUL.md exists:**
 
-### 10. Check Memory Search Configuration (openclaw.json)
+- Search SOUL.md for boundary-related sections or directives
+- Look for keywords: boundary, boundaries, limit, forbidden, never, must not, off-limits, scope, refuse, decline, restriction
+- PASS if boundaries section or directives are found with detail noting what was found
+- WARNING if no boundaries found with detail: "SOUL.md does not contain explicit boundaries. Production agents should have clearly defined operational boundaries."
 
-If openclaw.json exists: check memory section and backend/search config -- [PASS] or [WARN].
-If no openclaw.json: [WARN] "Cannot verify memory search config."
+**If SOUL.md is missing:**
+- Record as SKIPPED
 
-### 11. Check Self-Correction Directives (AGENTS.md)
+### 7. Check Failover Configuration (Rule H-05)
 
-- **Error journaling:** search for "mistake", "error", "correction", "log" -- [PASS] or [WARN]
-- **Learning loop:** search for "review", "past mistakes", "recurring", "patterns" -- [PASS] or [WARN]
+**If openclaw.json does not exist:**
+- Record as INFO with detail: "No openclaw.json found -- failover configuration not applicable"
 
-### 12. Check Group Chat Behavior
+**If openclaw.json exists:**
 
-If agent bound to group channels (openclaw.json bindings with `guildId`):
-- Search AGENTS.md for "group chat", "when to speak", "stay silent", "HEARTBEAT_OK" -- [PASS] or [WARN]
+- Check for `model` configuration block
+- Check `model.primary`:
+  - If set: note the primary model
+  - If missing: WARNING with detail "model.primary is not set"
+- Check `model.fallbacks`:
+  - If set and contains at least one entry: PASS with detail listing the fallback chain
+  - If missing or empty: WARNING with detail "No fallback models configured. If the primary model is unavailable, the agent will fail completely."
 
-If not bound to group channels: [PASS] -- not applicable.
+### 8. Check Compaction Configuration (Rule H-06)
 
-### 13. Append Findings to Report
+**If openclaw.json does not exist:**
+- Record as INFO with detail: "No openclaw.json found -- compaction configuration not applicable"
 
-Replace "## Hardening Checks" in {validationReportOutput} with tables per category: Boundaries, Safety Directives, Model Failover, Heartbeat Configuration, Sandbox Configuration, Tool Execution Security, Memory Directives, Memory Search Configuration, Self-Correction, Group Chat Behavior. Each table has columns: `| Check | Status | Details |`. End with: `**Hardening Summary:** {pass_count} passed, {fail_count} failed, {warn_count} warnings`
+**If openclaw.json exists:**
 
-### 14. Save Report and Auto-Proceed
+- Check for `compaction` configuration block
+- Report `compaction.mode` value:
+  - "default" mode: INFO with detail "Compaction mode is 'default'. Consider 'safeguard' mode for better memory preservation in production."
+  - "safeguard" mode: PASS with detail "Compaction mode is 'safeguard' -- good for production memory preservation"
+  - Not set: INFO with detail "compaction.mode not configured -- defaults will be used"
+- Report `compaction.maxHistoryShare` value if set
+- Report `compaction.memoryFlush` value if set
 
-"**Hardening checks complete.** {pass_count} passed, {fail_count} failed, {warn_count} warnings. Proceeding to final report..."
+### 9. Check Safety Section in AGENTS.md (Rule H-07)
 
-Save the report, then immediately load, read entire file, then execute {nextStepFile}.
+**If AGENTS.md exists:**
+
+- Search AGENTS.md for safety-related sections or directives
+- Look for keywords: safety, guardrail, guard, protect, caution, danger, harm, risk, ethics, responsible, harmful, inappropriate
+- PASS if safety section or directives are found with detail noting what was found (e.g., "Safety guardrails section found with explicit harm prevention directives")
+- WARNING if no safety directives found with detail: "AGENTS.md does not contain explicit safety directives. Production agents should have safety guardrails defined."
+
+**If AGENTS.md is missing:**
+- Record as SKIPPED
+
+### 10. Compile Hardening Results
+
+"**Hardening Checks Complete**
+
+---
+
+| Rule | Check | Result | Detail |
+|------|-------|--------|--------|
+{for each check performed: | rule_id | check_description | PASS/WARNING/ERROR/INFO/SKIPPED | detail |}
+
+**Hardening Totals:** {pass_count} PASS / {warning_count} WARNING / {error_count} ERROR / {info_count} INFO / {skipped_count} SKIPPED
+
+---"
+
+Append these results to the Hardening Checks section of the validation report.
+
+### 11. Auto-Proceed
+
+"**Proceeding to report generation...**"
+
+**Auto-proceed:** Load, read entire file, then execute {nextStepFile}.
 
 ---
 
 ## SYSTEM SUCCESS/FAILURE METRICS
 
 ### SUCCESS:
-- Every hardening rule checked across all categories
-- AGENTS.md, SOUL.md, openclaw.json read and analyzed
-- Boundaries, safety, failover, heartbeat, sandbox, tool security, memory, self-correction all checked
-- Findings appended to report, report saved, auto-proceeded
 
-### SYSTEM FAILURE:
-- Skipping any hardening check
-- Not reading file contents deeply
-- Not checking sandbox, exec.security, or memory search config
-- Not saving report before proceeding or halting for user input
+- All hardening validation rules (H-01 through H-07) executed or appropriately skipped
+- Memory directives checked in AGENTS.md
+- Memory backend configuration checked in openclaw.json
+- Tool policies analyzed
+- Boundaries verified in SOUL.md
+- Failover configuration checked
+- Compaction settings reviewed
+- Safety section verified in AGENTS.md
+- All results recorded with correct severity levels (ERROR, WARNING, INFO)
+- Results appended to validation report
+- Auto-proceeding to report step
 
-**Master Rule:** Check EVERY hardening rule. DO NOT BE LAZY. Auto-proceed.
+### FAILURE:
+
+- Not checking all hardening rules
+- Using wrong severity levels (e.g., ERROR where INFO is specified)
+- Running structural or coherence checks in this step
+- Not handling missing files gracefully (should SKIP, not crash)
+- Modifying any workspace files
+
+**Master Rule:** Analyze production readiness systematically. Check memory, tools, boundaries, failover, compaction, and safety. Record every finding with correct severity. DO NOT run structural or coherence checks, and DO NOT modify any files.

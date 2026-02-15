@@ -1,112 +1,191 @@
 ---
 name: 'step-03-coherence-checks'
-description: 'Validate cross-artifact consistency across workspace files'
+description: 'Validate cross-artifact consistency: personality alignment, startup references, skill mappings, binding completeness, identity consistency'
 
 nextStepFile: './step-04-hardening-checks.md'
-validationRules: '../data/workspace-validation-rules.md'
-validationReportOutput: '{validationReportOutput}'
+validationRulesRef: '../data/workspace-validation-rules.md'
 ---
 
 # Step 3: Coherence Checks
 
 ## STEP GOAL:
 
-Validate cross-artifact consistency -- AGENTS.md references, persona/identity coherence, skill references, openclaw.json agent ID cross-referencing, and binding completeness.
+To verify cross-artifact consistency across workspace files -- that references between files are valid, personality definitions are aligned, skill bindings match actual files, and configuration entries are coherent.
 
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
-- DO NOT BE LAZY - READ AND CROSS-REFERENCE EVERY ARTIFACT
-- Read the complete step file before taking any action
-- When loading next step, ensure entire file is read
-- Validation does NOT stop for user input - auto-proceed through all checks
-- If any instruction references a tool you lack access to, achieve the outcome in your main context
+### Universal Rules:
+
+- CRITICAL: Read the complete step file before taking any action
+- CRITICAL: When loading next step, ensure entire file is read
 - YOU MUST ALWAYS SPEAK OUTPUT in your Agent communication style with the config `{communication_language}`
-- Focus ONLY on cross-artifact consistency -- hardening is step 04, structural was step 02
-- Report findings as [PASS], [FAIL], or [WARN] per check
-- You MUST actually read file contents to perform these checks
-- If a required file was missing in step 02, mark checks involving it as [SKIP]
+
+### Role Reinforcement:
+
+- You are a precision configuration validator (Cog / Gear Wright)
+- Systematic, thorough, objective -- reports facts, not opinions
+- You bring expertise in cross-artifact validation and workspace consistency
+
+### Step-Specific Rules:
+
+- Focus ONLY on coherence validation (cross-artifact consistency)
+- FORBIDDEN to run hardening checks -- that comes in step 04
+- FORBIDDEN to re-run structural checks -- that was step 02
+- FORBIDDEN to modify any workspace files -- this is a read-only workflow
+- If a required file is missing (detected in step 02), skip checks that depend on it and record as "SKIPPED - required file not found"
+- If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context
+
+## EXECUTION PROTOCOLS:
+
+- Load validation rules for coherence checks
+- Read relevant workspace files (SOUL.md, AGENTS.md, IDENTITY.md, openclaw.json)
+- Run all coherence checks (C-01 through C-05) against the workspace
+- Record each result with severity and detail
+- Append findings to the validation report
+- Auto-proceed to step 04
+
+## CONTEXT BOUNDARIES:
+
+- Workspace path from step 01
+- Workspace file inventory from step 01
+- Structural check results from step 02 (to know which files exist)
+- Validation report (with structural results) from step 02
+- Dependencies: step 01 must be complete; step 02 results available if it ran
 
 ## MANDATORY SEQUENCE
 
 **CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
 
-### 1. Load Validation Rules
+### 1. Load Coherence Validation Rules
 
-Load {validationRules} and focus on the "## Coherence Checks" section.
+Load {validationRulesRef} and read the **Category 2: Coherence Checks** section. Use rules C-01 through C-05 as the check criteria for this step.
 
-### 2. Read Workspace Files
+### 2. Read Workspace Files for Cross-Reference
 
-Read (if they exist): SOUL.md, AGENTS.md, IDENTITY.md, TOOLS.md, openclaw.json. List all directories under skills/.
+Read the following workspace files (if they exist). If a file does not exist, note it as unavailable and skip checks that depend on it.
 
-### 3. Check AGENTS.md References
+- `SOUL.md` -- extract agent name, personality traits, communication style, boundaries
+- `AGENTS.md` -- extract startup sequence, skill references, session management directives
+- `IDENTITY.md` -- extract agent name, emoji, theme
+- `openclaw.json` -- parse JSON and extract agents, bindings, channels
 
-AGENTS.md must reference these workspace files at session startup:
+### 3. Check SOUL.md and AGENTS.md Personality Consistency (Rule C-01)
 
-- **SOUL.md:** look for "Read SOUL.md" or equivalent, verify file exists -- [PASS] or [FAIL]
-- **USER.md:** look for "Read USER.md" or equivalent, verify file exists -- [PASS] or [FAIL]
-- **memory/:** look for "memory/YYYY-MM-DD.md", "daily notes", or equivalent, verify directory exists -- [PASS] or [FAIL]
-- **MEMORY.md:** look for MEMORY.md reference for main sessions -- [PASS] or [WARN]
+**If both SOUL.md and AGENTS.md exist:**
 
-### 4. Check Personality-Directive Consistency
+- Extract the agent name from SOUL.md
+- Check if AGENTS.md references SOUL.md in its startup/initialization sequence
+- Check if the agent name used in AGENTS.md matches or references the name defined in SOUL.md
+- PASS if consistent references found
+- WARNING if AGENTS.md does not reference SOUL.md or uses a different name
 
-- **SOUL.md Boundaries section:** has "## Boundaries" and is non-empty -- [PASS] or [FAIL]
-- **Tone consistency:** compare SOUL.md personality with AGENTS.md directives, look for contradictions -- [PASS] or [WARN]
+**If either file is missing:**
+- Record as SKIPPED with detail noting which file is missing
 
-### 5. Check Identity Consistency
+### 4. Check AGENTS.md Session Startup References (Rule C-02)
 
-If both IDENTITY.md and SOUL.md exist:
-- Compare agent name (Name field) and vibe (Vibe field) from IDENTITY.md with SOUL.md references
-- [PASS] or [WARN] if names/vibes don't match
+**If AGENTS.md exists:**
 
-If only SOUL.md exists: [PASS] -- no consistency issue.
+- Search AGENTS.md for references to the following files:
+  - `SOUL.md` (personality loading)
+  - `USER.md` (user context loading)
+  - `MEMORY.md` or memory-related directives (memory initialization)
+- PASS if all three are referenced
+- WARNING for each missing reference, with detail: "AGENTS.md does not reference {filename} in startup sequence"
 
-### 6. Check Skill References
+**If AGENTS.md is missing:**
+- Record as SKIPPED
 
-- Extract skill references from AGENTS.md and TOOLS.md
-- For each referenced skill, verify directory exists under skills/ with SKILL.md -- [PASS] or [FAIL]
-- Check for orphan skill directories not referenced in any workspace file -- [PASS] or [WARN]
+### 5. Check Skill References vs Actual Skills (Rule C-03)
 
-### 7. Check Config Agent ID Consistency
+**If AGENTS.md exists and skills/ directory exists:**
 
-If openclaw.json exists with `agents.list`:
-- For each `bindings[].agentId`, verify it matches one of `agents.list[].id` -- [PASS] or [FAIL]
+- Extract skill references from AGENTS.md:
+  - Look for skill binding sections, skill lists, or file references matching `skills/*.md` or skill names
+- List all `.md` files in the `skills/` directory
+- Compare the two lists:
+  - Skills referenced in AGENTS.md but missing from skills/ directory: WARNING per missing skill ("Skill '{name}' referenced in AGENTS.md but file not found in skills/")
+  - Skill files present in skills/ but not referenced in AGENTS.md: WARNING per orphan ("Skill file '{name}' exists in skills/ but is not referenced in AGENTS.md")
+  - Skills that match: PASS per match
 
-If openclaw.json exists but no `agents.list`: [WARN]. If no openclaw.json: [PASS].
+**If AGENTS.md is missing or skills/ does not exist:**
+- Record as SKIPPED with appropriate detail
 
-### 8. Check Binding Completeness
+### 6. Check openclaw.json Binding Completeness (Rule C-04)
 
-If openclaw.json has `bindings[]`, for each binding verify:
-- Has `agentId` -- [PASS] or [WARN]
-- Has `match.channel` -- [PASS] or [WARN]
-- Has target (`match.peer` or `match.guildId`) -- [PASS] or [WARN]
+**If openclaw.json exists and was valid JSON (from step 02):**
 
-If no openclaw.json or no bindings: [PASS].
+- Check `agents.list`: Verify each agent entry has a `workspace` path and an `enabled` field
+- Check `bindings`: Verify each binding references an agent name that exists in `agents.list`
+- Check `bindings`: Verify each binding references a channel that exists in the `channels` section
+- PASS if all references are consistent
+- WARNING for each broken reference with detail
 
-### 9. Append Findings to Report
+**If openclaw.json does not exist:**
+- Record as SKIPPED with detail "openclaw.json not found -- skipping binding checks"
 
-Replace "## Coherence Checks" in {validationReportOutput} with tables per category: AGENTS.md References, Personality-Directive Consistency, Identity Consistency, Skill References, Config Agent ID Consistency, Binding Completeness. Each table has columns: `| Check | Status | Details |`. End with: `**Coherence Summary:** {pass_count} passed, {fail_count} failed, {warn_count} warnings`
+### 7. Check IDENTITY.md Consistency with SOUL.md (Rule C-05)
 
-### 10. Save Report and Auto-Proceed
+**If both IDENTITY.md and SOUL.md exist:**
 
-"**Coherence checks complete.** {pass_count} passed, {fail_count} failed, {warn_count} warnings. Proceeding to hardening checks..."
+- Extract the agent name from IDENTITY.md
+- Extract the agent name from SOUL.md
+- Compare the two:
+  - PASS if names match or are clearly the same agent
+  - WARNING if names appear to describe different agents, with detail noting the discrepancy
 
-Save the report, then immediately load, read entire file, then execute {nextStepFile}.
+**If either file is missing:**
+- Record as SKIPPED with detail noting which file is missing
+
+### 8. Compile Coherence Results
+
+"**Coherence Checks Complete**
+
+---
+
+| Rule | Check | Result | Detail |
+|------|-------|--------|--------|
+{for each check performed: | rule_id | check_description | PASS/WARNING/ERROR/SKIPPED | detail |}
+
+**Coherence Totals:** {pass_count} PASS / {warning_count} WARNING / {error_count} ERROR / {skipped_count} SKIPPED
+
+---"
+
+Append these results to the Coherence Checks section of the validation report.
+
+### 9. Auto-Proceed
+
+"**Proceeding to hardening checks...**"
+
+**Auto-proceed:** Load, read entire file, then execute {nextStepFile}.
+
+**EXCEPTION:** If the user selected check categories in step 01 that exclude hardening:
+- If "coherence only" was selected: Skip to `./step-05-report.md`
+- If "all" was selected: Proceed to {nextStepFile} as normal
 
 ---
 
 ## SYSTEM SUCCESS/FAILURE METRICS
 
 ### SUCCESS:
-- SOUL.md and AGENTS.md read and cross-referenced
-- AGENTS.md references to SOUL.md, USER.md, memory/ verified
-- Skill references checked, identity consistency verified
-- openclaw.json agent IDs cross-referenced with bindings
-- Findings appended to report, report saved, auto-proceeded
 
-### SYSTEM FAILURE:
-- Not reading file contents (just checking existence)
-- Skipping any coherence check or not cross-referencing between files
-- Not verifying openclaw.json agent ID consistency
-- Not saving report before proceeding or halting for user input
+- All coherence validation rules (C-01 through C-05) executed or appropriately skipped
+- Workspace files read and cross-referenced
+- Personality consistency checked between SOUL.md and AGENTS.md
+- Startup references validated in AGENTS.md
+- Skill references compared against actual skill files
+- Binding completeness verified in openclaw.json
+- Identity consistency verified between IDENTITY.md and SOUL.md
+- All results recorded with severity and detail
+- Results appended to validation report
+- Auto-proceeding to next step
 
-**Master Rule:** Cross-reference everything. DO NOT BE LAZY. Auto-proceed.
+### FAILURE:
+
+- Not reading the workspace files needed for cross-reference
+- Not checking all coherence rules
+- Running structural or hardening checks in this step
+- Not handling missing files gracefully (should SKIP, not crash)
+- Modifying any workspace files
+
+**Master Rule:** Read files, cross-reference content, check consistency. Record every finding. DO NOT run structural or hardening checks, and DO NOT modify any files.

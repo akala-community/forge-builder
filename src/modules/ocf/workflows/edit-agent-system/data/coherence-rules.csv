@@ -1,0 +1,15 @@
+rule_id,source_artifact,target_artifact,check_type,description,severity
+CR001,SOUL.md,AGENTS.md,alignment,Persona traits in SOUL.md must align with behavioral directives in AGENTS.md,critical
+CR002,AGENTS.md,skills/,reference,Every skill referenced in AGENTS.md must exist as a directory in skills/,critical
+CR003,skills/,AGENTS.md,reference,Every skill directory should be referenced or acknowledged in AGENTS.md,warning
+CR004,SOUL.md,USER.md,alignment,Communication style in SOUL.md must match interaction patterns in USER.md,important
+CR005,SOUL.md,IDENTITY.md,alignment,Identity fields in IDENTITY.md must be consistent with personality in SOUL.md,important
+CR006,AGENTS.md,MEMORY.md,alignment,Memory directives must match agent capabilities and skill needs,important
+CR007,AGENTS.md,BOOT.md,alignment,Boot instructions must reference actual agent capabilities defined in AGENTS.md,important
+CR008,AGENTS.md,HEARTBEAT.md,alignment,Heartbeat tasks must be achievable given the agent's defined capabilities,important
+CR009,IDENTITY.md,SOUL.md,alignment,Agent name and creature in IDENTITY.md should reflect personality in SOUL.md,warning
+CR010,SOUL.md,SOUL.md,internal,Persona traits must be internally consistent (no contradictions),important
+CR011,HEARTBEAT.md,skills/,reference,Heartbeat tasks that reference skills must point to existing skill directories,warning
+CR012,BOOT.md,AGENTS.md,reference,Boot instructions should not assume capabilities not defined in AGENTS.md,important
+CR013,TOOLS.md,AGENTS.md,alignment,Tool notes should reflect tools actually referenced in agent directives,warning
+CR014,BOOTSTRAP.md,AGENTS.md,alignment,First-run setup must align with the agent's defined role and capabilities,warning

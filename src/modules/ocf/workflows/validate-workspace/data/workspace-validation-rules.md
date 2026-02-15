@@ -1,219 +1,223 @@
 # Workspace Validation Rules
 
-Reference data for the validate-workspace workflow. These rules define what constitutes a valid, consistent, and hardened OpenClaw workspace.
+This document defines all validation rules used by the validate-workspace workflow. Rules are organized by category (structural, coherence, hardening) and each rule specifies its ID, description, severity, and check procedure.
 
 ---
 
-## Structural Checks
+## Severity Levels
 
-### Required Files (FAIL if missing)
-
-| File | Severity | Rule |
-|------|----------|------|
-| SOUL.md | FAIL | Must exist and be non-empty. Defines agent personality and boundaries. Required sections: ## Core Truths, ## Boundaries, ## Vibe, ## Continuity. |
-| AGENTS.md | FAIL | Must exist and be non-empty. Defines agent operational procedures. Must reference SOUL.md, USER.md, memory/. |
-| USER.md | FAIL | Must exist. Defines the user the agent serves. Expected fields: Name, Pronouns, Timezone, Notes, ## Context. |
-
-### Expected Files (WARN if missing)
-
-| File | Severity | Rule |
-|------|----------|------|
-| IDENTITY.md | WARN | Should exist. Defines agent name, creature, vibe, emoji, and avatar. If absent, check SOUL.md for identity section. |
-| TOOLS.md | WARN | Should exist if agent uses tools. User-maintained local tool configuration notes. |
-| HEARTBEAT.md | WARN | Should exist if heartbeat is configured. Periodic task checklist. |
-
-### Optional Files (INFO if missing)
-
-| File | Severity | Rule |
-|------|----------|------|
-| MEMORY.md | WARN | Should exist if memory backend is enabled. Curated long-term memory (free-form, no required structure). |
-| BOOT.md | WARN | Should exist. Startup instructions read every session. |
-
-### Files That Should NOT Exist (anti-patterns)
-
-| File | Severity | Rule |
-|------|----------|------|
-| BOOTSTRAP.md | WARN | Should NOT exist in a fully initialized workspace. First-run script that should be deleted after setup. |
-
-### Required Directories
-
-| Directory | Severity | Rule |
-|-----------|----------|------|
-| memory/ | WARN | Should exist for daily notes (memory/YYYY-MM-DD.md). |
-
-### Optional Directories
-
-| Directory | Severity | Rule |
-|-----------|----------|------|
-| skills/ | WARN | Should exist if AGENTS.md or TOOLS.md references skills. Each skill is a subdirectory. |
-
-### Skill Well-Formedness
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| SKILL.md exists per skill directory | FAIL | Each skill subdirectory under skills/ must contain a SKILL.md file. |
-| SKILL.md has name frontmatter | WARN | SKILL.md must have YAML frontmatter with a `name` field. |
-| SKILL.md has description frontmatter | WARN | SKILL.md must have YAML frontmatter with a `description` field. |
-| SKILL.md has ONLY name+description frontmatter | INFO | SKILL.md frontmatter should contain only `name` and `description` fields -- no other configuration. |
-
-### File Well-Formedness
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| SOUL.md has ## sections | WARN | Should have structured sections: ## Core Truths, ## Boundaries, ## Vibe, ## Continuity. |
-| AGENTS.md has ## sections | WARN | Should have structured sections covering: Every Session, Memory, Safety, Tools. |
-| USER.md has content | WARN | Should contain at minimum the user's name or preferences (Name, Pronouns, Timezone, Notes, ## Context). |
-| IDENTITY.md has content | WARN | Should contain identity fields (Name, Creature, Vibe, Emoji, Avatar). |
-| HEARTBEAT.md has checklist | WARN | Should contain a periodic task checklist. |
+| Level | Meaning |
+|-------|---------|
+| **ERROR** | Critical issue. The workspace is broken or non-functional. Contributes to FAIL status. |
+| **WARNING** | Non-critical issue. The workspace functions but is missing recommended configuration. Contributes to WARNINGS status. |
+| **INFO** | Informational note. No impact on pass/fail status. |
 
 ---
 
-## Coherence Checks
+## Category 1: Structural Checks
 
-### AGENTS.md References
+Structural checks verify that the workspace has all required files, expected files, and proper directory structure.
 
-| Check | Severity | Rule |
-|-------|----------|------|
-| AGENTS.md references SOUL.md | FAIL | Session startup must instruct agent to read SOUL.md. Verify SOUL.md exists. |
-| AGENTS.md references USER.md | FAIL | Session startup must instruct agent to read USER.md. Verify USER.md exists. |
-| AGENTS.md references memory/ | FAIL | Session startup must instruct agent to read memory/YYYY-MM-DD.md or equivalent daily notes. Verify memory/ directory exists. |
-| AGENTS.md references MEMORY.md | WARN | Should instruct agent to read MEMORY.md in main sessions. |
+### S-01: Required File Presence
 
-### Personality-Directive Consistency
+| Rule | Description |
+|------|-------------|
+| **ID** | S-01 |
+| **Severity** | ERROR (per missing file) |
+| **Description** | All required workspace files must be present |
+| **Check** | Verify each of the following files exists in the workspace root |
 
-| Check | Severity | Rule |
-|-------|----------|------|
-| SOUL.md has Boundaries section | FAIL | Boundaries section must be present and non-empty. |
-| SOUL.md tone is consistent | WARN | The personality tone in SOUL.md should not contradict AGENTS.md directives. Check for conflicting instructions (e.g., "be bold" in SOUL vs "always ask permission" in AGENTS). |
+**Required files:**
 
-### Identity Consistency
+| File | Purpose |
+|------|---------|
+| `AGENTS.md` | Main agent directives -- startup instructions, tool/skill bindings, session management |
+| `SOUL.md` | Personality definition, identity, communication style, boundaries |
+| `USER.md` | User preferences, context, interaction patterns |
+| `IDENTITY.md` | Agent name, emoji, avatar, theme configuration |
+| `TOOLS.md` | Tool usage guidance, policies, access rules |
+| `HEARTBEAT.md` | Heartbeat/cron configuration for periodic tasks |
+| `MEMORY.md` | Memory handling directives and backend configuration |
+| `BOOT.md` | Bootstrap sequence and initialization instructions |
 
-| Check | Severity | Rule |
-|-------|----------|------|
-| IDENTITY.md matches SOUL.md | WARN | If both exist, the agent name and vibe in IDENTITY.md should be consistent with any name/personality references in SOUL.md. |
+### S-02: File Non-Empty Check
 
-### Skill References
+| Rule | Description |
+|------|-------------|
+| **ID** | S-02 |
+| **Severity** | ERROR (per empty required file), WARNING (per empty optional file) |
+| **Description** | All present files must contain content (non-empty) |
+| **Check** | For each file found, verify it is not empty (has more than whitespace) |
 
-| Check | Severity | Rule |
-|-------|----------|------|
-| Referenced skills exist | FAIL | All skills mentioned in AGENTS.md or TOOLS.md must have corresponding skill directories with SKILL.md files in skills/. |
-| No orphan skill directories | WARN | Skill directories should be referenced somewhere in workspace files. |
+### S-03: File Well-Formedness
 
-### Config Agent ID Consistency
+| Rule | Description |
+|------|-------------|
+| **ID** | S-03 |
+| **Severity** | WARNING |
+| **Description** | Files with YAML frontmatter should have valid frontmatter blocks |
+| **Check** | If a file starts with `---`, verify the frontmatter block closes with a second `---` and contains valid YAML |
 
-| Check | Severity | Rule |
-|-------|----------|------|
-| Binding agentIds match agents.list | FAIL | If openclaw.json exists, every `bindings[].agentId` must match one of the `agents.list[].id` values. |
-| agents.list exists | WARN | If openclaw.json exists, it should have an `agents.list` array. |
+### S-04: Directory Structure
 
-### Binding Completeness
+| Rule | Description |
+|------|-------------|
+| **ID** | S-04 |
+| **Severity** | WARNING (per missing directory) |
+| **Description** | Expected directories should exist |
+| **Check** | Verify the following directories exist in the workspace |
 
-| Check | Severity | Rule |
-|-------|----------|------|
-| Binding has agentId | WARN | Each binding in `bindings[]` should have an `agentId` field. |
-| Binding has match.channel | WARN | Each binding in `bindings[]` should have a `match.channel` field. |
-| Binding has target | WARN | Each binding should have a target: `match.peer` or `match.guildId`. |
+**Expected directories:**
 
----
+| Directory | Purpose |
+|-----------|---------|
+| `memory/` | Memory state files, persistent storage |
+| `skills/` | Skill definition files |
 
-## Hardening Checks
+### S-05: BOOTSTRAP.md Absence
 
-### Boundaries
+| Rule | Description |
+|------|-------------|
+| **ID** | S-05 |
+| **Severity** | WARNING |
+| **Description** | BOOTSTRAP.md should NOT be present after initial bootstrap is complete |
+| **Check** | Verify `BOOTSTRAP.md` does NOT exist in the workspace root. If present, it indicates the bootstrap workflow was not finalized or cleanup was skipped. |
 
-| Check | Severity | Rule |
-|-------|----------|------|
-| SOUL.md ## Boundaries section | FAIL | SOUL.md must have a "## Boundaries" section. |
-| Privacy boundaries | FAIL | SOUL.md Boundaries section must address privacy (e.g., "Private things stay private"). |
-| External action rules | FAIL | SOUL.md or AGENTS.md must have rules about external actions (ask before sending emails, etc.). |
-| Scope limits | WARN | SOUL.md or AGENTS.md should define the agent's domain scope. |
+### S-06: openclaw.json Presence
 
-### Safety Directives
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| AGENTS.md ## Safety section | FAIL | AGENTS.md must have a "## Safety" section. |
-| No-exfiltration rule | FAIL | AGENTS.md must contain a directive against exfiltrating private data. |
-| Destructive command warning | WARN | AGENTS.md should contain guidance about destructive commands (prefer trash over rm, ask before destructive operations). |
-
-### Model Failover
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| model.fallbacks configured | WARN | If openclaw.json exists and agent is customer-facing, `agents.list[].model.fallbacks` should be defined. |
-
-### Heartbeat Configuration
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| heartbeat configured | WARN | If openclaw.json exists, at least one agent in `agents.list[]` should have `heartbeat` configured with `heartbeat.every`. Optional: `heartbeat.activeHours`, `heartbeat.model`. |
-
-### Sandbox Configuration
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| sandbox configured | WARN | If openclaw.json exists, `agents.list[].sandbox` should be configured for non-main sessions. Check for `sandbox.mode` and `sandbox.workspaceAccess`. |
-
-### Tool Execution Security
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| exec.security set | WARN | If openclaw.json exists and tools are configured, `agents.list[].tools.exec.security` should be set. |
-| Tool profile or policies | WARN | If openclaw.json exists, `agents.list[].tools.profile` should be set, or explicit `tools.allow`/`tools.deny` rules should exist. |
-
-### Memory Directives
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| Daily log directive | FAIL | AGENTS.md must contain directives about daily logs (memory/YYYY-MM-DD.md). |
-| Long-term memory directive | FAIL | AGENTS.md must contain directives about MEMORY.md for long-term storage. |
-| Write-it-down rule | WARN | AGENTS.md should contain the "write it down / no mental notes" directive or equivalent. |
-
-### Memory Search Configuration
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| Memory search configured | WARN | If openclaw.json exists, memory search/backend should be configured (or explicitly disabled with justification). |
-
-### Self-Correction
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| Error journaling | WARN | AGENTS.md should contain directives about logging errors and corrections to memory. |
-| Learning loop | WARN | AGENTS.md should contain directives about reviewing past mistakes. |
-
-### Group Chat Behavior
-
-| Check | Severity | Rule |
-|-------|----------|------|
-| Group chat rules | WARN | If agent is bound to group channels (bindings with guildId), AGENTS.md should define when to speak vs stay silent. |
+| Rule | Description |
+|------|-------------|
+| **ID** | S-06 |
+| **Severity** | WARNING |
+| **Description** | openclaw.json configuration file should exist |
+| **Check** | Verify `openclaw.json` exists in the workspace root. If present, verify it is valid JSON. |
 
 ---
 
-## Config Schema Reference (openclaw.json)
+## Category 2: Coherence Checks
 
-For validation of openclaw.json structure, the following schema fields are relevant:
+Coherence checks verify cross-artifact consistency -- that references between files are valid and content is aligned.
 
-```
-agents.list[].id                    (required string)
-agents.list[].model.primary         (optional)
-agents.list[].model.fallbacks       (optional array)
-agents.list[].tools.profile         (optional)
-agents.list[].tools.allow           (optional array)
-agents.list[].tools.deny            (optional array)
-agents.list[].tools.exec            (optional object)
-agents.list[].tools.exec.security   (optional)
-agents.list[].heartbeat.every       (optional)
-agents.list[].heartbeat.activeHours (optional)
-agents.list[].heartbeat.model       (optional)
-agents.list[].sandbox.mode          (optional)
-agents.list[].sandbox.workspaceAccess (optional)
-agents.list[].subagents.maxConcurrent (optional)
-agents.list[].subagents.model       (optional)
-agents.list[].subagents.thinking    (optional)
-agents.list[].groupChat.mentionPatterns (optional)
+### C-01: SOUL.md and AGENTS.md Personality Consistency
 
-bindings[].agentId                  (required string)
-bindings[].match.channel            (required string)
-bindings[].match.peer               (optional string)
-bindings[].match.guildId            (optional string)
-```
+| Rule | Description |
+|------|-------------|
+| **ID** | C-01 |
+| **Severity** | WARNING |
+| **Description** | SOUL.md personality should be referenced or reflected in AGENTS.md |
+| **Check** | Read SOUL.md to extract the agent name and key personality traits. Read AGENTS.md and verify it references SOUL.md in its startup/initialization sequence. The agent name used in AGENTS.md should match or reference the name defined in SOUL.md. |
+
+### C-02: AGENTS.md Session Startup References
+
+| Rule | Description |
+|------|-------------|
+| **ID** | C-02 |
+| **Severity** | WARNING |
+| **Description** | AGENTS.md should reference other workspace files in its startup sequence |
+| **Check** | Read AGENTS.md and verify it contains references to the following files in its startup or initialization instructions: SOUL.md, USER.md, MEMORY.md (or memory-related directives). Missing references indicate the agent may not load all workspace context on startup. |
+
+### C-03: Skill References vs Actual Skills
+
+| Rule | Description |
+|------|-------------|
+| **ID** | C-03 |
+| **Severity** | WARNING (per orphaned or missing skill) |
+| **Description** | Skills referenced in AGENTS.md should match actual skill files |
+| **Check** | Extract skill references from AGENTS.md (look for skill bindings, skill lists, or references to files in skills/). List all .md files in the skills/ directory. Report: (a) skills referenced in AGENTS.md but missing from skills/ directory, (b) skill files present in skills/ but not referenced in AGENTS.md. |
+
+### C-04: openclaw.json Binding Completeness
+
+| Rule | Description |
+|------|-------------|
+| **ID** | C-04 |
+| **Severity** | WARNING |
+| **Description** | If openclaw.json exists, its agent and binding entries should be consistent |
+| **Check** | If openclaw.json exists, verify: (a) agents listed in agents.list have valid workspace paths, (b) bindings reference agents that exist in agents.list, (c) channel references in bindings point to channels defined in channels section. |
+
+### C-05: IDENTITY.md Consistency with SOUL.md
+
+| Rule | Description |
+|------|-------------|
+| **ID** | C-05 |
+| **Severity** | WARNING |
+| **Description** | Agent name and identity in IDENTITY.md should be consistent with SOUL.md |
+| **Check** | If both IDENTITY.md and SOUL.md exist, read both files. Verify the agent name referenced in IDENTITY.md matches the name defined in SOUL.md. Flag discrepancies where the identity appears to describe a different agent. |
+
+---
+
+## Category 3: Hardening Checks
+
+Hardening checks verify security, resilience, and operational production-readiness.
+
+### H-01: Memory Directives in AGENTS.md
+
+| Rule | Description |
+|------|-------------|
+| **ID** | H-01 |
+| **Severity** | WARNING |
+| **Description** | AGENTS.md should contain memory-related directives |
+| **Check** | Read AGENTS.md and check for the presence of memory-related sections or directives. Look for keywords: memory, remember, recall, persist, save, store. A production agent should have explicit instructions about when and how to use memory. |
+
+### H-02: Memory Backend Configuration
+
+| Rule | Description |
+|------|-------------|
+| **ID** | H-02 |
+| **Severity** | INFO (if no openclaw.json), WARNING (if openclaw.json exists but memorySearch is missing or disabled) |
+| **Description** | Memory backend should be configured in openclaw.json |
+| **Check** | If openclaw.json exists, check for `memorySearch` configuration block. Verify: (a) `memorySearch.enabled` is true, (b) `memorySearch.provider` is set, (c) `memorySearch.store` is set. |
+
+### H-03: Tool Policies
+
+| Rule | Description |
+|------|-------------|
+| **ID** | H-03 |
+| **Severity** | INFO (if no openclaw.json), WARNING (if openclaw.json exists but tools config is minimal) |
+| **Description** | Tool policies should be configured for production use |
+| **Check** | If openclaw.json exists, check for `tools` configuration block. Verify: (a) `tools.profile` is set (one of: "minimal", "coding", "messaging", "full"), (b) review `tools.allow` and `tools.deny` arrays if present, (c) check `tools.exec` and `tools.web` settings. Report the configured profile and any explicit allow/deny rules. |
+
+### H-04: Boundaries in SOUL.md
+
+| Rule | Description |
+|------|-------------|
+| **ID** | H-04 |
+| **Severity** | WARNING |
+| **Description** | SOUL.md should define operational boundaries |
+| **Check** | Read SOUL.md and look for a boundaries section or explicit boundary-related directives. Look for keywords: boundary, boundaries, limit, forbidden, never, must not, off-limits, scope. A production agent should have clearly defined boundaries for what it will and will not do. |
+
+### H-05: Failover Configuration
+
+| Rule | Description |
+|------|-------------|
+| **ID** | H-05 |
+| **Severity** | INFO (if no openclaw.json), WARNING (if openclaw.json exists but no failover) |
+| **Description** | Model failover chain should be configured for resilience |
+| **Check** | If openclaw.json exists, check for `model` configuration block. Verify: (a) `model.primary` is set, (b) `model.fallbacks` is set and contains at least one fallback model. An agent without failover will fail completely if the primary model is unavailable. |
+
+### H-06: Compaction Configuration
+
+| Rule | Description |
+|------|-------------|
+| **ID** | H-06 |
+| **Severity** | INFO |
+| **Description** | Compaction settings should be reviewed for production suitability |
+| **Check** | If openclaw.json exists, check for `compaction` configuration block. Report: (a) `compaction.mode` value ("default" or "safeguard"), (b) `compaction.maxHistoryShare` value, (c) `compaction.memoryFlush` value. If mode is "default", note that "safeguard" mode provides better memory preservation. |
+
+### H-07: Safety Section in AGENTS.md
+
+| Rule | Description |
+|------|-------------|
+| **ID** | H-07 |
+| **Severity** | WARNING |
+| **Description** | AGENTS.md should contain a safety or guardrails section |
+| **Check** | Read AGENTS.md and look for safety-related sections or directives. Look for keywords: safety, guardrail, guard, protect, caution, danger, harm, risk, ethics, responsible. A production agent should have explicit safety guidelines. |
+
+---
+
+## Overall Status Calculation
+
+| Condition | Overall Status |
+|-----------|---------------|
+| Zero ERRORs and zero WARNINGs | **PASS** |
+| Zero ERRORs but one or more WARNINGs | **WARNINGS** |
+| One or more ERRORs (regardless of WARNINGs) | **FAIL** |
