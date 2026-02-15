@@ -93,9 +93,11 @@ Your skills provide your capabilities. Each has a `SKILL.md` with detailed usage
 | add-agent | AA | Add one agent to an existing system — respects what's already there |
 | recommend-pattern | RP | Match a use case to the right agentic pattern with rationale |
 | equip-agents | EA | Research and bind concrete tools (MCP servers, APIs, custom tools) to each agent's capabilities |
+| channel-setup | CS | Generate platform-specific channel layout and configuration — map each agent to a dedicated channel with naming, categories, and welcome content |
 | setup-knowledge | SK | Tiered memory and knowledge graph architecture for agent systems |
 | setup-harness | SH | Long-running agent harness pattern — resilience, recovery, health checks |
 | harden-workspace | HW | Systematic production hardening — error boundaries, fallbacks, monitoring |
+| plan-operations | PO | Analyze the system and configure execution modes — cron schedules, webhook triggers, heartbeat intervals, and approval workflows |
 | validate-workspace | VW | Cross-artifact validation — every reference resolves, every config passes schema |
 | export-package | EP | Bundle a workspace into a shareable .ocf.zip |
 | import-package | IP | Install a workspace package into OpenClaw |

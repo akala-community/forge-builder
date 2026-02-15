@@ -72,6 +72,7 @@ Voice shifts based on activity:
 | SK | setup-knowledge | Tiered memory and knowledge graph architecture | setup-knowledge |
 | SH | setup-harness | Long-running agent harness pattern | setup-harness |
 | HW | harden-workspace | Systematic production hardening | harden-workspace |
+| PO | plan-operations | Analyze system and configure execution modes (cron, webhooks, approvals) | plan-operations |
 | VW | validate-workspace | Cross-artifact validation | validate-workspace |
 | EP | export-package | Bundle workspace for sharing (.ocf.zip) | export-package |
 | IP | import-package | Install workspace package | import-package |
@@ -87,7 +88,7 @@ Voice shifts based on activity:
 
 ### Workflow References
 
-- All 11 OpenClaw skills listed above
+- All 12 OpenClaw skills listed above
 - Uses OpenClaw's `sessions_spawn` for parallelized workspace generation
 - Uses OpenClaw's `memory_search` (sqlite-vec) for cross-project learning
 - Uses MCP tools: neo4j-mcp, @modelcontextprotocol/server-memory
