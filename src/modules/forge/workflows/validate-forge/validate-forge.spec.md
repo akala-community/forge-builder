@@ -43,7 +43,7 @@ installed_path: '{project-root}/_bmad/forge/workflows/validate-forge'
 | 01 | Load all artifacts | Collect all workspace files, skills, and reference data |
 | 02 | Structural checks | Verify all required files exist and have correct format |
 | 03 | Coherence checks | Cross-reference skills against patterns library, config schema |
-| 04 | Completeness checks | Ensure all 9 skills are present with required resources |
+| 04 | Completeness checks | Ensure all registered skills (discovered from `forge.spec.md` and `{forge_artifacts}/skills/`) are present with required resources |
 | 05 | Generate report | Produce validation report with pass/fail/warnings |
 
 ---

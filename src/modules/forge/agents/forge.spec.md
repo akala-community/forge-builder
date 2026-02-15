@@ -68,6 +68,7 @@ Voice shifts based on activity:
 | AA | add-agent | Add one agent to existing system | add-agent |
 | RP | recommend-pattern | Match use case to agentic pattern | recommend-pattern |
 | EA | equip-agents | Research and bind concrete tools to each agent's capabilities | equip-agents |
+| CS | channel-setup | Generate platform-specific channel layout and configuration for agent communication | channel-setup |
 | SK | setup-knowledge | Tiered memory and knowledge graph architecture | setup-knowledge |
 | SH | setup-harness | Long-running agent harness pattern | setup-harness |
 | HW | harden-workspace | Systematic production hardening | harden-workspace |
@@ -86,7 +87,7 @@ Voice shifts based on activity:
 
 ### Workflow References
 
-- All 10 OpenClaw skills listed above
+- All 11 OpenClaw skills listed above
 - Uses OpenClaw's `sessions_spawn` for parallelized workspace generation
 - Uses OpenClaw's `memory_search` (sqlite-vec) for cross-project learning
 - Uses MCP tools: neo4j-mcp, @modelcontextprotocol/server-memory

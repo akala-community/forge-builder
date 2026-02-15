@@ -10,7 +10,7 @@
 
 **Goal:** Generate a specific OpenClaw skill's SKILL.md and bundled reference resources
 
-**Description:** Takes a skill name (one of the 9 OpenClaw skills The Forge provides) and generates its complete SKILL.md definition plus any bundled reference data the skill needs. Each skill is a self-contained capability that The Forge agent activates at runtime.
+**Description:** Takes a skill name and generates its complete SKILL.md definition plus any bundled reference data the skill needs. Discovers available skills dynamically by scanning `forge.spec.md` and the `{forge_artifacts}/skills/` directory — so newly added skills from `add-forge-skill` are always included. Each skill is a self-contained capability that The Forge agent activates at runtime.
 
 **Workflow Type:** Build / Code Generation
 
@@ -40,11 +40,12 @@ installed_path: '{project-root}/_bmad/forge/workflows/build-forge-skill'
 
 | Step | Name | Goal |
 |------|------|------|
-| 01 | Select skill | Choose which skill to build from the 9 available |
-| 02 | Load skill context | Load relevant brief sections, pattern library, config schema |
-| 03 | Generate SKILL.md | Create the skill definition with triggers, flow, and instructions |
-| 04 | Bundle resources | Generate any reference data the skill needs at runtime |
-| 05 | Validate skill | Check skill for completeness and consistency |
+| 01 | Discover available skills | Scan `{forge_artifacts}/skills/` directory and `forge.spec.md` command table to build the current skill registry — includes both original and newly added skills |
+| 02 | Select skill | Present the discovered skill list to the user and let them choose which skill to build |
+| 03 | Load skill context | Load relevant brief sections, pattern library, config schema, and the skill's existing spec (if updating) |
+| 04 | Generate SKILL.md | Create the skill definition with triggers, flow, and instructions |
+| 05 | Bundle resources | Generate any reference data the skill needs at runtime |
+| 06 | Validate skill | Check skill for completeness and consistency |
 
 ---
 
@@ -52,8 +53,9 @@ installed_path: '{project-root}/_bmad/forge/workflows/build-forge-skill'
 
 ### Required Inputs
 
-- Skill name (one of: design-system, add-agent, recommend-pattern, setup-knowledge, setup-harness, harden-workspace, validate-workspace, export-package, import-package)
+- Skill name (from registered skills — discovered dynamically by scanning `forge.spec.md` command table and `{forge_artifacts}/skills/` directory)
 - module-brief-forge.md (module brief)
+- forge.spec.md (for command table / skill registry)
 - Agentic patterns library (for pattern-related skills)
 
 ### Optional Inputs
@@ -72,8 +74,8 @@ installed_path: '{project-root}/_bmad/forge/workflows/build-forge-skill'
 
 ### Output Files
 
-- `skills/{skill-name}/SKILL.md` — Skill definition
-- `skills/{skill-name}/data/` — Bundled reference resources (if needed)
+- `{forge_artifacts}/skills/{skill-name}/SKILL.md` — Skill definition
+- `{forge_artifacts}/skills/{skill-name}/data/` — Bundled reference resources (if needed)
 
 ---
 

@@ -5,3 +5,4 @@ forge,anytime,Add Forge Skill,AS,,_bmad/forge/workflows/add-forge-skill/workflow
 forge,anytime,Update Reference Data,UR,,_bmad/forge/workflows/update-reference-data/workflow.md,forge_update_ref,false,forge-builder,Update Mode,Refresh pattern library and config reference against OpenClaw source,forge_artifacts,reference data,
 forge,anytime,Package Forge,PF,,_bmad/forge/workflows/package-forge/workflow.md,forge_package,false,forge-builder,Package Mode,Bundle The Forge into installable .ocf.zip,forge_artifacts,.ocf.zip,
 forge,anytime,Validate Forge,VF,,_bmad/forge/workflows/validate-forge/workflow.md,forge_validate,false,forge-builder,Validate Mode,Validate The Forge module for internal consistency,forge_artifacts,report,
+forge,anytime,Channel Setup,CS,,_bmad/forge/skills/channel-setup/SKILL.md,forge_channel_setup,false,forge,Create Mode,Generate platform-specific channel layout and configuration for agent communication,forge_artifacts,channel setup doc,

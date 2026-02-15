@@ -72,8 +72,8 @@ installed_path: '{project-root}/_bmad/forge/workflows/update-reference-data'
 
 ### Output Files
 
-- `data/patterns/` — Updated agentic pattern library
-- `data/config-reference/` — Updated OpenClaw config schema reference
+- `{forge_artifacts}/data/patterns/` — Updated agentic pattern library
+- `{forge_artifacts}/data/config-reference/` — Updated OpenClaw config schema reference
 
 ---
 

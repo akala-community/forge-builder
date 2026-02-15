@@ -73,10 +73,10 @@ installed_path: '{project-root}/_bmad/forge/workflows/build-forge-agent'
 
 ### Output Files
 
-- `SOUL.md` — Personality, lore, behavioral guidelines
-- `IDENTITY.md` — Identity card
-- `AGENTS.md` — Operational instructions
-- Additional workspace files as needed
+- `{forge_artifacts}/SOUL.md` — Personality, lore, behavioral guidelines
+- `{forge_artifacts}/IDENTITY.md` — Identity card
+- `{forge_artifacts}/AGENTS.md` — Operational instructions
+- Additional workspace files as needed under `{forge_artifacts}/`
 
 ---
 

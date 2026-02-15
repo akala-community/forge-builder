@@ -1,6 +1,6 @@
 # Workflows Reference
 
-forge includes 6 workflows:
+forge includes 7 workflows:
 
 ---
 
@@ -31,17 +31,18 @@ When building or rebuilding The Forge's runtime agent from its specification and
 **Workflow:** `build-forge-skill`
 
 **Purpose:**
-Generate a specific OpenClaw skill's SKILL.md definition and any bundled reference resources it needs at runtime.
+Generate a specific OpenClaw skill's SKILL.md definition and any bundled reference resources it needs at runtime. Discovers available skills dynamically by scanning `forge.spec.md` and the `{forge_artifacts}/skills/` directory — so newly added skills from `add-forge-skill` are always included.
 
 **When to Use:**
-When building or updating one of The Forge's 9 user-facing skills (design-system, add-agent, recommend-pattern, setup-knowledge, setup-harness, harden-workspace, validate-workspace, export-package, import-package).
+When building or updating any of The Forge's user-facing skills — both original and newly added ones.
 
 **Key Steps:**
-1. Select which skill to build
-2. Load relevant brief sections and reference data
-3. Generate SKILL.md with triggers, flow, and instructions
-4. Bundle reference resources
-5. Validate skill completeness
+1. Discover available skills (scan `{forge_artifacts}/skills/` directory and `forge.spec.md` command table)
+2. Select which skill to build from the discovered list
+3. Load relevant brief sections and reference data
+4. Generate SKILL.md with triggers, flow, and instructions
+5. Bundle reference resources
+6. Validate skill completeness
 
 **Agent(s):** Forge Builder (Morgan)
 
@@ -59,12 +60,13 @@ When you want to add a new skill to The Forge that wasn't part of the original d
 
 **Key Steps:**
 1. Define skill concept (name, purpose, triggers, scope)
-2. Load module context (agent specs, existing skills, module brief)
-3. Generate skill spec (SKILL.md definition)
-4. Register in Forge Builder (add as build-forge-skill target)
-5. Update module artifacts (module-help.csv, docs)
-6. Validate consistency (naming collisions, trigger conflicts)
-7. Prompt rebuild (direct to build-forge-agent)
+2. Analyze current Forge flow — map existing skill/workflow graph and show the user where the new skill fits in relation to existing capabilities, pipeline stages, and integration points
+3. Load module context (agent specs, existing skills, module brief)
+4. Generate skill spec (SKILL.md definition)
+5. Register in Forge Builder (add as build-forge-skill target)
+6. Update module artifacts (module-help.csv, docs)
+7. Validate consistency (naming collisions, trigger conflicts)
+8. Prompt rebuild pipeline — recommend `build-forge-skill` first, then `build-forge-agent`
 
 **Pipeline:** add-forge-skill → build-forge-skill → build-forge-agent
 
@@ -116,6 +118,31 @@ When The Forge is ready for release — all workspace files, skills, and referen
 
 ---
 
+## channel-setup
+
+**Workflow:** `channel-setup`
+
+**Purpose:**
+Generate a platform-specific channel layout plan and implementation configuration for a Forge workspace, mapping each agent to a dedicated channel with proper categories, naming, and per-channel welcome/instruction content. Currently supports Discord.
+
+**When to Use:**
+After agent roster and architecture are defined — when you need to set up communication channels (e.g., Discord) so each agent has a dedicated channel users can interact with.
+
+**Key Steps:**
+1. Load agent roster and extract agent names, roles, interaction patterns
+2. Determine channel platform (Discord initially)
+3. Generate channel plan with categories, channel names, agent-to-channel mapping
+4. User reviews and confirms layout
+5. Generate per-channel configuration (descriptions, welcome messages, invocation instructions)
+6. Produce complete channel setup document
+7. Optionally generate platform-specific automation script
+
+**Pipeline:** design-system / equip-agents → channel-setup → harden-workspace
+
+**Agent(s):** The Forge
+
+---
+
 ## validate-forge
 
 **Workflow:** `validate-forge`
@@ -130,7 +157,7 @@ Before packaging, after major changes, or as a periodic health check.
 1. Load all workspace files, skills, and reference data
 2. Structural checks (required files exist, correct format)
 3. Coherence checks (skills reference valid patterns and config)
-4. Completeness checks (all 9 skills present with resources)
+4. Completeness checks (all registered skills present with resources)
 5. Generate validation report
 
 **Agent(s):** Forge Builder (Morgan)

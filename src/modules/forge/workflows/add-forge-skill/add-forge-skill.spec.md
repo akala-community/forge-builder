@@ -10,7 +10,7 @@
 
 **Goal:** Define a new skill for The Forge and register it in the Forge Builder's build pipeline
 
-**Description:** Accepts a new skill concept from the user, generates its complete SKILL.md specification and bundled resource requirements, then registers it as a build target in Morgan's (Forge Builder) pipeline. After completion, prompts the user to run `build-forge-agent` to regenerate The Forge's workspace files with the new capability wired in.
+**Description:** Accepts a new skill concept from the user, then analyzes The Forge's current runtime flow to show where the new skill fits in the existing workflow graph. After positioning is understood, generates the complete SKILL.md specification and bundled resource requirements, then registers it as a build target in Morgan's (Forge Builder) pipeline. After completion, explicitly recommends the user run `build-forge-skill` (to generate the new skill's runtime files) followed by `build-forge-agent` (to regenerate The Forge's workspace files with the new capability wired in).
 
 **Workflow Type:** Build / Extensibility
 
@@ -41,12 +41,13 @@ installed_path: '{project-root}/_bmad/forge/workflows/add-forge-skill'
 | Step | Name | Goal |
 |------|------|------|
 | 01 | Define skill concept | Gather skill name, purpose, triggers, and scope from user |
-| 02 | Load module context | Load forge.spec.md, forge-builder.spec.md, existing skills list, and module brief |
-| 03 | Generate skill spec | Create the skill's SKILL.md definition with triggers, flow, instructions, and bundled resource requirements |
-| 04 | Register in Forge Builder | Update forge-builder.spec.md to add the new skill as a `build-forge-skill` target |
-| 05 | Update module artifacts | Update module.yaml, module-help.csv, and docs/workflows.md to reflect the new skill |
-| 06 | Validate consistency | Cross-check the new skill against existing skills for naming collisions, trigger conflicts, and pattern overlap |
-| 07 | Prompt rebuild | Inform user that `build-forge-agent` should be run next to regenerate The Forge's workspace files with the new capability |
+| 02 | Analyze current Forge flow | Load forge.spec.md and existing skills, map the current workflow/skill graph, and present the user with a visual summary of where the new skill fits — which existing skills it relates to, what pipeline stages it belongs to, and any integration points |
+| 03 | Load module context | Load forge.spec.md, forge-builder.spec.md, existing skills list, and module brief |
+| 04 | Generate skill spec | Create the skill's SKILL.md definition with triggers, flow, instructions, and bundled resource requirements |
+| 05 | Register in Forge Builder | Update forge-builder.spec.md to add the new skill as a `build-forge-skill` target |
+| 06 | Update module artifacts | Update module.yaml, module-help.csv, and docs/workflows.md to reflect the new skill |
+| 07 | Validate consistency | Cross-check the new skill against existing skills for naming collisions, trigger conflicts, and pattern overlap |
+| 08 | Prompt rebuild pipeline | Recommend the user run `build-forge-skill` for the new skill first (to generate its SKILL.md), then `build-forge-agent` to regenerate The Forge's workspace files with the new capability wired in. Present both as explicit next actions with the correct execution order. |
 
 ---
 
@@ -57,7 +58,7 @@ installed_path: '{project-root}/_bmad/forge/workflows/add-forge-skill'
 - Skill name and description (from user)
 - forge.spec.md (The Forge agent specification)
 - forge-builder.spec.md (Morgan's agent specification)
-- Existing skill specs in `skills/` directory (for conflict detection)
+- Existing skill specs in `{forge_artifacts}/skills/` directory (for conflict detection)
 - module-brief-forge.md (module brief)
 
 ### Optional Inputs
@@ -77,7 +78,7 @@ installed_path: '{project-root}/_bmad/forge/workflows/add-forge-skill'
 
 ### Output Files
 
-- `skills/{skill-name}/SKILL.md` — New skill specification
+- `{forge_artifacts}/skills/{skill-name}/SKILL.md` — New skill specification
 - Updated `forge-builder.spec.md` — New build target registered in Morgan's command table
 - Updated `module-help.csv` — New skill entry
 - Updated `docs/workflows.md` — Documentation for the new skill
@@ -98,7 +99,10 @@ None
 
 ## Post-Workflow Action
 
-After this workflow completes, the user should run **build-forge-agent** to regenerate The Forge's workspace files (SOUL.md, AGENTS.md, IDENTITY.md) so the new skill is wired into The Forge's runtime capabilities.
+After this workflow completes, the user should run:
+
+1. **`build-forge-skill`** — to generate the new skill's SKILL.md and bundled resources
+2. **`build-forge-agent`** — to regenerate The Forge's workspace files (SOUL.md, AGENTS.md, IDENTITY.md) so the new skill is wired into The Forge's runtime capabilities
 
 Pipeline: **add-forge-skill** → **build-forge-skill** → **build-forge-agent**
 
