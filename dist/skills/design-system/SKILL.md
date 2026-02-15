@@ -129,24 +129,34 @@ The Forge activates this skill as: **Agentic System Architect** — the master b
 
 #### Phase 4: Workspace File Generation
 
-1. For each agent in the roster, generate:
-   - **SOUL.md** — Core identity, values, boundaries
-   - **AGENTS.md** — Behavioral rules, tool policies, interaction protocols
-   - **IDENTITY.md** — Name, personality, communication style
-   - Additional workspace files as needed by the agent's role
-2. For systems with 3+ agents, use `sessions_spawn` to parallelize generation.
-3. Present a summary of what was generated for each agent.
-4. Allow the user to review and request changes to any agent's files.
+1. For each agent in the roster, create an isolated workspace directory at `{project-root}/agents/{agent-id}/` where `{agent-id}` is the kebab-case agent identifier (e.g., `researcher`, `content-creator`).
+   - **Guard check:** If any `{project-root}/agents/{agent-id}/` directory already exists, warn the user and ask whether to overwrite, pick a different id, or skip that agent. Never silently overwrite.
+2. For each agent, generate workspace files within its own directory:
+   - **SOUL.md** at `{project-root}/agents/{agent-id}/SOUL.md` — Core identity, values, boundaries
+   - **AGENTS.md** at `{project-root}/agents/{agent-id}/AGENTS.md` — Behavioral rules, tool policies, interaction protocols
+   - **IDENTITY.md** at `{project-root}/agents/{agent-id}/IDENTITY.md` — Name, personality, communication style
+   - Additional workspace files as needed by the agent's role, placed within the same directory
+3. **Isolation check:** Confirm each agent's files were written only to its own `{project-root}/agents/{agent-id}/` directory — no agent's workspace should contain files from another agent.
+4. For systems with 3+ agents, use the `sessions_spawn` tool to parallelize generation across agents.
+5. Present a summary of what was generated for each agent, including the workspace directory path.
+6. Allow the user to review and request changes to any agent's files.
 
 #### Phase 5: Configuration Generation
 
 1. Generate `openclaw.json` containing:
-   - `bindings[]` — route messages to the correct agent based on pattern
-   - `sessions_spawn` — configure agent spawning and orchestration
-   - `subagents.maxConcurrent` — set parallelism limits
-   - `model.primary` and `model.fallbacks` — model configuration per agent
-   - Tool policies per agent
-2. Validate the configuration against OpenClaw's config schema.
+   - `agents.list[]` — An array entry for each agent in the roster. Each entry must include:
+     - `id`: kebab-case agent identifier (e.g., `researcher`)
+     - `name`: display name (e.g., `Researcher`)
+     - `workspace`: path to the agent's workspace directory (e.g., `./agents/researcher`)
+     - `model`: agent-specific model config with `primary` and optional `fallbacks` (or omit to inherit from `agents.defaults.model`)
+     - `skills`: array of skill identifiers if applicable
+     - Mark exactly one agent with `default: true` — this agent handles unmatched routes
+   - `agents.defaults` — Global defaults for model, subagents, heartbeat, compaction, and other shared settings
+   - `bindings[]` — Route messages to the correct agent based on the selected agentic pattern (match rules using `channel`, `accountId`, `peer`, `guildId`, `teamId`, `roles`)
+   - `agents.defaults.subagents.maxConcurrent` — Set parallelism limits if the pattern uses sub-agent spawning (spawning is done at runtime via the `sessions_spawn` tool, not a config section)
+   - Model configuration per agent or via `agents.defaults.model` with `primary` and `fallbacks`
+   - Tool policies per agent via `agents.list[].tools` or `agents.defaults.tools`
+2. Validate the configuration against OpenClaw's config schema — ensure all `agents.list[]` entries have valid `id` and `workspace` values, all `bindings[]` entries reference valid agent ids.
 3. Present the configuration structure (summarized, with full detail on request).
 
 #### Phase 6: Validation

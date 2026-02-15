@@ -161,30 +161,34 @@ The Forge activates this skill as a production hardening specialist — a system
 
 #### Phase 6: Self-Correction Hardening
 
-1. For each agent, read AGENTS.md
-2. Check for: clear role boundaries, error recovery instructions, scope limitations, interaction guidelines
-3. Flag agents missing AGENTS.md entirely
-4. Flag agents with AGENTS.md that lacks behavioral constraints
-5. Present findings:
-   - CRITICAL: Agent has no AGENTS.md
-   - WARNING: AGENTS.md missing error recovery or scope boundaries
-   - INFO: AGENTS.md could be more specific about edge cases
-6. Recommend specific AGENTS.md additions
-7. Wait for user confirmation
+1. Enumerate all agents from `agents.list[]` in `openclaw.json`. For each agent, resolve its workspace path from the `workspace` field (e.g., `./agents/{agent-id}/`).
+2. For each agent, read `{agent-workspace}/AGENTS.md` (e.g., `{project-root}/agents/{agent-id}/AGENTS.md`)
+3. Check for: clear role boundaries, error recovery instructions, scope limitations, interaction guidelines
+4. Flag agents missing AGENTS.md entirely — reference the specific path checked
+5. Flag agents with AGENTS.md that lacks behavioral constraints
+6. Present findings per agent, identifying each by name and workspace path:
+   - CRITICAL: Agent `{agent-id}` has no AGENTS.md at `{agent-workspace}/AGENTS.md`
+   - WARNING: Agent `{agent-id}` AGENTS.md missing error recovery or scope boundaries
+   - INFO: Agent `{agent-id}` AGENTS.md could be more specific about edge cases
+7. Recommend specific AGENTS.md additions per agent — clearly state which agent's file to modify
+8. Wait for user confirmation before recording changes
+9. **Isolation rule:** Only modify the AGENTS.md within the specific agent's workspace directory. Never modify another agent's files.
 
 #### Phase 7: Boundaries Hardening
 
-1. For each agent, read SOUL.md
-2. Check for: clear identity definition, behavioral boundaries, prohibited actions, ethical constraints
-3. Check sandbox/execution environment configuration
-4. Flag agents missing SOUL.md entirely
-5. Flag overly permissive sandbox configurations
-6. Present findings:
-   - CRITICAL: Agent has no SOUL.md or no sandbox restrictions
-   - WARNING: SOUL.md missing prohibited actions or ethical constraints
-   - INFO: Boundary refinement opportunities
-7. Recommend specific SOUL.md additions and sandbox config
-8. Wait for user confirmation
+1. Enumerate all agents from `agents.list[]` in `openclaw.json`. For each agent, resolve its workspace path from the `workspace` field.
+2. For each agent, read `{agent-workspace}/SOUL.md` (e.g., `{project-root}/agents/{agent-id}/SOUL.md`)
+3. Check for: clear identity definition, behavioral boundaries, prohibited actions, ethical constraints
+4. Check sandbox/execution environment configuration in `agents.list[].sandbox` or `agents.defaults.sandbox`
+5. Flag agents missing SOUL.md entirely — reference the specific path checked
+6. Flag overly permissive sandbox configurations
+7. Present findings per agent, identifying each by name and workspace path:
+   - CRITICAL: Agent `{agent-id}` has no SOUL.md at `{agent-workspace}/SOUL.md` or no sandbox restrictions
+   - WARNING: Agent `{agent-id}` SOUL.md missing prohibited actions or ethical constraints
+   - INFO: Agent `{agent-id}` boundary refinement opportunities
+8. Recommend specific SOUL.md additions and sandbox config per agent — clearly state which agent's file to modify
+9. Wait for user confirmation
+10. **Isolation rule:** Only modify the SOUL.md within the specific agent's workspace directory. Never modify another agent's files.
 
 #### Phase 8: Report Generation
 
