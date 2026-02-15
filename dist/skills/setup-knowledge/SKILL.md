@@ -58,17 +58,17 @@ version: 1.0.0
    - User interaction: Guide through any required setup (API keys for embeddings, Neo4j connection, MCP server config)
 
    **Per-tier configuration:**
-   - **Flat-file:** Configure `memory/` directory structure, set up `memorySearch.provider` in openclaw.json
-   - **Vector:** Configure embedding provider (OpenAI, Gemini, Voyage, or Local), set similarity thresholds, configure `memorySearch` block
-   - **Graph:** Configure MCP server connection (Neo4j or memory-server), set up `mcporter` skill binding, define schema (entity types, relationship types)
+   - **Flat-file:** Configure `memory/` directory structure, set up `memory.backend: "builtin"` in openclaw.json, configure `agents.defaults.memorySearch` (or per-agent `agents.list[].memorySearch`) with `enabled: true`, `provider`, `model`, and query settings
+   - **Vector:** Configure embedding provider and model in `agents.defaults.memorySearch` (or per-agent override via `agents.list[].memorySearch`), set `enabled: true`, configure `provider`, `model`, `store`, `chunking`, `sync`, `query`, and `cache` settings. If provider needs API key, configure in `skills.entries` or environment variables
+   - **Graph:** Configure MCP server connection (Neo4j or memory-server) via MCP server config in openclaw.json, define schema (entity types, relationship types). Memory search can complement graph with `agents.defaults.memorySearch` for hybrid recall
 
 4. **Set Up MCP (If Graph Tier)** — Connect MCP servers for graph-tier knowledge
    - Input: Graph backend choice (Neo4j or memory-server)
-   - Output: MCP server configured and connected via `mcporter`
+   - Output: MCP server configured and connected
    - User interaction: "I'll connect the knowledge graph server. Do you have Neo4j running, or should we use the lightweight memory server?"
 
-   **Neo4j path:** Configure `neo4j-mcp` server, set connection URI, credentials, database name
-   **Memory-server path:** Configure `@modelcontextprotocol/server-memory`, set storage location
+   **Neo4j path:** Configure `neo4j-mcp` server in MCP server config, set connection URI, credentials, database name
+   **Memory-server path:** Configure `@modelcontextprotocol/server-memory` in MCP server config, set storage location
 
 5. **Configure Hooks** — Set up auto-capture and auto-recall hooks
    - Input: Configured backend, agent roster
@@ -135,21 +135,26 @@ The Forge activates this skill as a **Knowledge Architect** — designing and de
 
 1. **Flat-file tier:**
    - Ensure `memory/` directory exists in workspace
-   - Configure `memorySearch` in openclaw.json with appropriate provider
-   - Set search parameters (result count, similarity threshold)
+   - Configure `memory.backend: "builtin"` in openclaw.json (this is the default)
+   - Configure memory search — decide scope: `agents.defaults.memorySearch` (all agents) or `agents.list[].memorySearch` (per-agent override)
+   - Set `enabled: true`, `provider` (embedding provider name), `model` (embedding model identifier)
+   - Set search parameters in `query` sub-object (result count, similarity threshold)
 
 2. **Vector tier:**
-   - Configure embedding provider in `memorySearch.provider`
-   - If provider needs API key, guide user through setup
-   - Set `memorySearch.topK` and similarity thresholds
-   - Configure auto-embedding for memory entries
+   - Configure embedding provider and model in `agents.defaults.memorySearch` or per-agent `agents.list[].memorySearch`
+   - Set `enabled: true`, `provider`, `model`
+   - If provider needs API key, guide user through setup (configure in environment or `skills.entries`)
+   - Configure `query` settings (top-K results, similarity thresholds)
+   - Configure `chunking` and `sync` for auto-embedding of memory entries
+   - Configure `store` for storage backend options
+   - Optional: configure `cache` for search result caching
 
 3. **Graph tier:**
    - Ask user: Neo4j (full graph database) or memory-server (lightweight JSON-based)?
-   - **Neo4j:** Configure `neo4j-mcp` in mcporter config — URI, auth, database
-   - **Memory-server:** Configure `@modelcontextprotocol/server-memory` — storage path
+   - **Neo4j:** Configure `neo4j-mcp` in MCP server config — URI, auth, database
+   - **Memory-server:** Configure `@modelcontextprotocol/server-memory` in MCP server config — storage path
    - Define knowledge schema: entity types relevant to the use case, relationship types
-   - Set up `mcporter` skill binding so agents can query the graph
+   - Optionally configure `agents.defaults.memorySearch` alongside graph for hybrid recall (flat-file + graph)
 
 #### Phase 4: Hook Configuration
 
@@ -183,7 +188,7 @@ The Forge activates this skill as a **Knowledge Architect** — designing and de
 
 **Required at runtime:**
 - Memory tier comparison data (decision matrix for tier recommendation)
-- OpenClaw config schema (for generating valid `memorySearch` and `mcporter` configuration)
+- OpenClaw config schema (for generating valid `memory`, `agents.defaults.memorySearch`, and MCP server configuration)
 - Hook configuration templates (for `before_agent_start` and `agent_end` hooks)
 
 **Optional enhancements:**

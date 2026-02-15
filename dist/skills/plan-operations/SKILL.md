@@ -112,18 +112,18 @@ For each agent, evaluate against these four execution modes:
 
 **Cron / Heartbeat (scheduled)**
 - Fits: Monitoring agents, periodic report generators, data sync agents, health checkers
-- OpenClaw config: `cron.enabled: true`, `agents.list[].heartbeat` with `every`, `activeHours`, `target`, `prompt`
-- Key decisions: interval, active hours window, timezone, session retention
+- OpenClaw config: `cron.enabled: true`, `cron.maxConcurrentRuns`, `cron.sessionRetention`. Per-agent heartbeat via `agents.list[].heartbeat` or global default via `agents.defaults.heartbeat` — with `every` (cron or duration string), `activeHours` (start, end, timezone), `target`, `to`, `prompt`, `model`, `session`, `ackMaxChars`, `includeReasoning`
+- Key decisions: interval, active hours window, timezone, session retention, heartbeat target (channel or "none" for silent)
 
 **Webhook (event-driven)**
 - Fits: Agents that react to external events — PR reviews, deployment triggers, form submissions, email arrivals
-- OpenClaw config: `hooks.enabled: true`, `hooks.mappings[]` with match patterns, action type, agent routing
-- Key decisions: match criteria (headers, path, body), auth token, channel routing, timeout
+- OpenClaw config: `hooks.enabled: true`, `hooks.path` (URL path, default `/hooks/agent`), `hooks.token` (auth token), `hooks.allowedAgentIds` (restrict which agents can be targeted), `hooks.mappings[]` — each mapping has `id`, `match` (headers, path, body patterns), `action` (prompt, forward), `agentId`, `channel`, `model`, `timeout`, `sessionKey`. Optional: `hooks.presets`, `hooks.transformsDir`, `hooks.gmail` (Gmail push integration)
+- Key decisions: match criteria (headers, path, body), auth token, allowed agent IDs, channel routing, timeout, session key management (`hooks.defaultSessionKey`, `hooks.allowRequestSessionKey`, `hooks.allowedSessionKeyPrefixes`)
 
 **Human-in-the-loop (approval-gated)**
 - Fits: Agents that execute sensitive operations — deployments, data modifications, financial transactions
-- OpenClaw config: `tools.exec.ask`, `approvals.exec` with forwarding targets
-- Key decisions: approval mode (ask/allowlist), forwarding channels, safe binary lists
+- OpenClaw config: `tools.exec.ask` (whether to prompt before execution), `tools.exec.safeBins` (list of safe binaries), `tools.exec.security` (security policy). Note: approval forwarding is configured per-channel via channel settings, not via a top-level `approvals` block
+- Key decisions: exec ask mode, safe binary list, security policy, which channel receives approval requests
 
 Present classification as a table:
 
@@ -140,24 +140,28 @@ For each confirmed execution mode, generate the specific OpenClaw configuration:
 
 **Cron/Heartbeat entries:**
 - Define `cron.enabled: true` and `cron.maxConcurrentRuns`
-- Define `cron.sessionRetention` duration
-- For each scheduled agent: `heartbeat.every`, `heartbeat.activeHours` (start, end, timezone), `heartbeat.model`, `heartbeat.session`, `heartbeat.target`, `heartbeat.prompt`
-- Suggest HEARTBEAT.md content for agents that use heartbeat prompts
+- Define `cron.sessionRetention` duration (e.g., `"24h"`, `"7d"`, or `false` to disable)
+- For each scheduled agent, configure heartbeat at `agents.list[].heartbeat` (per-agent) or `agents.defaults.heartbeat` (global): `every` (cron or duration string), `activeHours` (start, end, timezone), `model`, `session`, `target`, `to`, `accountId`, `prompt`, `ackMaxChars`, `includeReasoning`
+- Generate `HEARTBEAT.md` at `{agent-workspace}/HEARTBEAT.md` for agents that use heartbeat prompts — reference the agent's specific workspace directory
 
 **Webhook mappings:**
-- Define `hooks.enabled: true`, `hooks.path`, `hooks.token`
-- For each webhook-triggered agent: mapping `id`, `match` criteria, `action` type, `agentId`, `channel`, `model`, `timeout`
-- Configure `hooks.allowedAgentIds`
-- If Gmail integration needed: configure `hooks.gmail` block
+- Define `hooks.enabled: true`, `hooks.path` (default `/hooks/agent`), `hooks.token` (auth secret)
+- For each webhook-triggered agent: add entry to `hooks.mappings[]` with `id`, `match` criteria (headers, path, body patterns), `action` type (prompt, forward), `agentId`, `channel`, `model`, `timeout`, `sessionKey`
+- Configure `hooks.allowedAgentIds` — array of agent IDs that can be targeted by webhook requests (use `["*"]` for any)
+- Optional: `hooks.presets` for pre-configured mapping rules, `hooks.transformsDir` for custom transform modules
+- If Gmail integration needed: configure `hooks.gmail` block (account, label, topic, subscription, serve, tailscale)
+- Optional session key management: `hooks.defaultSessionKey`, `hooks.allowRequestSessionKey`, `hooks.allowedSessionKeyPrefixes`
 
 **Approval workflows:**
-- Define `tools.exec.ask` mode and `tools.exec.safeBins` list
-- Configure `approvals.exec` with forwarding targets (channel, to)
-- Define `tools.exec.security` policy
+- Configure `tools.exec.ask` — whether to prompt before command execution
+- Configure `tools.exec.safeBins` — list of binaries considered safe (bypass approval)
+- Configure `tools.exec.security` — security policy for exec commands
+- Note: there is no top-level `approvals` config key. Approval forwarding is managed through channel configuration and `tools.exec` settings
 
 **Gateway requirements:**
 - If cron or hooks are needed and gateway isn't configured, flag this and propose minimal gateway config
-- Recommend `gateway.port`, `gateway.bind`, `gateway.auth` settings
+- Recommend `gateway.port` (default 18789), `gateway.bind` (auto|lan|loopback|tailnet|custom), `gateway.auth` (mode token|password, with token/password values)
+- If external access needed: configure `gateway.tailscale` (mode off|serve|funnel) or `gateway.tls` (enabled, certPath, keyPath)
 
 Present the complete plan section by section. Wait for user confirmation on each section.
 
@@ -168,7 +172,7 @@ Present the complete plan section by section. Wait for user confirmation on each
 3. Show a diff-style view: "Adding these sections to your config..."
 4. Wait for explicit user confirmation
 5. Write the configuration to `openclaw.json`
-6. If HEARTBEAT.md files are needed for any agents, generate and write them
+6. If HEARTBEAT.md files are needed for any agents, generate and write them to each agent's workspace directory at `{agent-workspace}/HEARTBEAT.md` (e.g., `{project-root}/agents/{agent-id}/HEARTBEAT.md`)
 7. Confirm: "Configuration written. {count} agents now have operational schedules configured."
 
 #### Phase 5: Validation

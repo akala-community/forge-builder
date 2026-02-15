@@ -82,13 +82,13 @@ The Forge activates this skill as a quality inspector — a meticulous auditor w
 #### Phase 1: Workspace Loading
 
 1. Read `openclaw.json` from the user's workspace root
-2. Identify all configured agents from bindings, workspace references, and subagent configurations
-3. For each agent, catalogue their workspace files: SOUL.md, AGENTS.md, IDENTITY.md, skills, memory config
-4. Catalogue all bindings with their match rules, channels, and routing targets
-5. Read memory configuration: memorySearch settings, memory/ directory structure, compaction settings
+2. Identify all configured agents from `agents.list[]`, extracting each agent's `id`, `name`, and `workspace` path
+3. For each agent, resolve its workspace directory from the `workspace` field (e.g., `{project-root}/agents/{agent-id}/`) and catalogue their workspace files: SOUL.md, AGENTS.md, IDENTITY.md, skills, memory config
+4. Catalogue all `bindings[]` with their match rules (`channel`, `accountId`, `peer`, `guildId`, `teamId`, `roles`) and routing targets (`agentId`)
+5. Read memory configuration: `memory.backend`, `agents.defaults.memorySearch`, per-agent `agents.list[].memorySearch` overrides, `memory/` directory structure, compaction settings
 6. Read plugin configurations if any
-7. Read model configuration: primary, fallbacks
-8. Read heartbeat configuration if present
+7. Read model configuration: `agents.defaults.model` (primary, fallbacks) and per-agent `agents.list[].model` overrides
+8. Read heartbeat configuration: `agents.defaults.heartbeat` and per-agent `agents.list[].heartbeat` overrides
 9. Build a complete workspace inventory
 10. Present summary: "Workspace loaded: {agent count} agents, {binding count} bindings, {pattern description}. Starting inspection."
 
@@ -97,19 +97,21 @@ The Forge activates this skill as a quality inspector — a meticulous auditor w
 Verify the workspace's physical structure — do all required files exist and are they well-formed?
 
 1. **openclaw.json validity**: Parse and validate against expected schema structure. Check for required top-level keys (bindings, model, etc.)
-2. **Agent file completeness**: For each agent referenced in config, verify:
-   - Workspace directory exists
-   - SOUL.md exists (CRITICAL if missing)
-   - AGENTS.md exists (WARNING if missing)
-   - IDENTITY.md exists if agent has personality requirements (INFO if missing)
+2. **Agent file completeness**: For each agent in `agents.list[]`, resolve its `workspace` path and verify:
+   - Workspace directory exists at the path specified in the agent's `workspace` field
+   - Each agent's workspace directory is unique — no two agents share the same workspace path
+   - SOUL.md exists at `{agent-workspace}/SOUL.md` (CRITICAL if missing)
+   - AGENTS.md exists at `{agent-workspace}/AGENTS.md` (WARNING if missing)
+   - IDENTITY.md exists at `{agent-workspace}/IDENTITY.md` if agent has personality requirements (INFO if missing)
    - Referenced skill files exist
-3. **Binding completeness**: For each binding, verify:
-   - Target agent workspace directory exists
-   - Match rules are syntactically valid
-   - Channel references are valid
+3. **Binding completeness**: For each entry in `bindings[]`, verify:
+   - `agentId` references a valid agent `id` in `agents.list[]`
+   - Target agent's workspace directory exists
+   - `match` rules are syntactically valid (using valid fields: `channel`, `accountId`, `peer`, `guildId`, `teamId`, `roles`)
+   - Channel references correspond to configured channels
 4. **Memory structure**: If memory is configured, verify:
-   - memorySearch provider is set
-   - Embedding model is configured if vector search enabled
+   - `memory.backend` is set (`"builtin"` or `"qmd"`)
+   - `agents.defaults.memorySearch.enabled` or per-agent `agents.list[].memorySearch.enabled` is set with valid `provider` and `model`
    - memory/ directory exists if daily logs are expected
 5. **Plugin structure**: If plugins are configured, verify:
    - Plugin directories exist
@@ -122,19 +124,19 @@ Verify the workspace's physical structure — do all required files exist and ar
 
 Verify cross-artifact consistency — do all references resolve and do configurations agree?
 
-1. **Agent-binding coherence**: Every agent referenced in bindings must have corresponding workspace files. Every agent with workspace files should be referenced in at least one binding (orphan check).
-2. **Subagent coherence**: If agents use `sessions_spawn` or `subagents` config:
-   - Spawned agent names must resolve to existing agent workspace directories
-   - `subagents.maxConcurrent` must be set if parallelization is configured
+1. **Agent-binding coherence**: Every `agentId` referenced in `bindings[]` must have a corresponding entry in `agents.list[]` with an existing workspace directory. Every agent in `agents.list[]` should be referenced in at least one `bindings[]` entry (orphan check — warn if not bound).
+2. **Subagent coherence**: If agents use `sessions_spawn` tool or `agents.defaults.subagents` / `agents.list[].subagents` config:
+   - Spawned agent names must resolve to existing agent entries in `agents.list[]` with valid workspace directories
+   - `agents.defaults.subagents.maxConcurrent` must be set if parallelization is configured
    - Parent-child relationships must not create circular dependencies
 3. **Model coherence**:
-   - All agents must be able to use the configured primary model (or have agent-specific overrides)
-   - Fallback models should be compatible with features the agents require (tool use, vision, etc.)
+   - All agents must have a usable model via `agents.list[].model` or inherited from `agents.defaults.model`
+   - `model.primary` must be set at either level; `model.fallbacks` should be compatible with features the agents require (tool use, vision, etc.)
 4. **Memory coherence**:
-   - If memory_search is configured, agents that reference it must have compatible embedding configurations
+   - If `agents.defaults.memorySearch.enabled` or any `agents.list[].memorySearch.enabled` is true, verify `provider` and `model` are configured
    - Token limits should be set appropriately for the configured embedding model
 5. **Tool coherence**:
-   - Tools referenced in agent configs must be available (built-in or via MCP/plugin)
+   - Tools referenced in agent configs (`agents.list[].tools.allow`, `agents.list[].tools.alsoAllow`) must be available (built-in or via MCP/plugin)
    - MCP server references must match configured MCP connections
 6. **Hook coherence**:
    - Hooks (before_agent_start, agent_end) must reference valid scripts/actions
@@ -154,12 +156,12 @@ Verify cross-artifact consistency — do all references resolve and do configura
 
 Assess production readiness — is this workspace hardened for reliable operation?
 
-1. **Failover posture**: Is model.fallbacks configured? At least one fallback model recommended.
-2. **Tool policy posture**: Are agents restricted to only their required tools? Flag unrestricted access.
-3. **Observability posture**: Is heartbeat configured? Is logging adequate?
-4. **Memory posture**: Is compaction in safeguard mode? Is memory_search configured for agents that need cross-session context?
-5. **Identity posture**: Do all agents have SOUL.md with clear boundaries? Do all agents have AGENTS.md with behavioral constraints?
-6. **Sandbox posture**: Are execution environment restrictions configured appropriately?
+1. **Failover posture**: Is `agents.defaults.model.fallbacks` or per-agent `agents.list[].model.fallbacks` configured? At least one fallback model recommended.
+2. **Tool policy posture**: Are agents restricted via `agents.list[].tools` (profile, allow, deny)? Flag unrestricted access (no profile or allow set).
+3. **Observability posture**: Is `agents.defaults.heartbeat` or per-agent `agents.list[].heartbeat` configured? Is logging adequate?
+4. **Memory posture**: Is `agents.defaults.compaction.mode` set to `"safeguard"` for long-running agents? Is `agents.defaults.memorySearch` configured for agents that need cross-session context?
+5. **Identity posture**: Do all agents have SOUL.md at `{agent-workspace}/SOUL.md` with clear boundaries? Do all agents have AGENTS.md at `{agent-workspace}/AGENTS.md` with behavioral constraints?
+6. **Sandbox posture**: Are `agents.list[].sandbox` or `agents.defaults.sandbox` restrictions configured appropriately?
 7. Compile hardening findings with severity ratings
 8. Present findings: "{count} hardening checks completed. {critical count} critical, {warning count} warnings, {info count} informational."
 9. Note: These checks overlap with what harden-workspace addresses — recommend chaining to harden-workspace for remediation if critical hardening gaps are found.

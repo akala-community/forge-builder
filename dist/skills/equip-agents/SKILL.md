@@ -174,6 +174,7 @@ The Forge activates this skill as a **Tool Procurement Engineer** — the specia
 #### Phase 4: Configuration Scaffolding
 
 1. **For each MCP server selected:**
+   Generate the MCP server config block. The exact config structure depends on the user's OpenClaw setup (some use `mcpServers` in openclaw.json, others configure via skill entries or environment). Present the standard format:
    ```json
    {
      "mcpServers": {
@@ -188,6 +189,7 @@ The Forge activates this skill as a **Tool Procurement Engineer** — the specia
    }
    ```
    Plus: installation instructions, credential acquisition guide.
+   Also configure tool access — add the MCP tools to the agent's tool policy via `agents.list[].tools.alsoAllow` or `agents.defaults.tools.alsoAllow` (to extend existing tool access without replacing it). If restricting tools, use `agents.list[].tools.deny`.
 
 2. **For each direct API selected:**
    - `.env` stub with required variables:
@@ -215,8 +217,9 @@ The Forge activates this skill as a **Tool Procurement Engineer** — the specia
    - Complexity estimate: simple (wrapper), medium (logic), complex (full integration)
 
 4. **For each OpenClaw skill binding:**
-   - Skill reference in agent config
-   - Any configuration parameters needed
+   - Configure in `skills.entries` with skill identifier, `enabled: true`, and any `apiKey`, `env`, or `config` values
+   - If the skill should be agent-specific, add the skill identifier to `agents.list[].skills` array
+   - Reference `skills.allowBundled` if using bundled skills
 
 #### Phase 5: Tool Plan Assembly
 
@@ -224,7 +227,7 @@ The Forge activates this skill as a **Tool Procurement Engineer** — the specia
    - **Agent-Tool Binding Table** — master reference of who uses what
    - **Setup Checklist** — ordered list of external services to configure
    - **Environment Variables** — complete list of secrets/credentials needed
-   - **Tool Policies** — recommended access controls per agent (feeds into `harden-workspace`)
+   - **Tool Policies** — recommended access controls per agent using `agents.list[].tools` (profile, allow, alsoAllow, deny) — feeds into `harden-workspace`
    - **Dependency Map** — which tools depend on external services, startup order
    - **Integration Notes** — how this tool plan feeds into `design-system` Phase 4 workspace generation
 

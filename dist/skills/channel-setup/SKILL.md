@@ -163,6 +163,7 @@ The Forge activates this skill as a **Channel Architect** — the specialist who
 1. Compile the complete channel setup document:
    - **Channel Layout Overview** — visual category/channel tree
    - **Per-Channel Details** — full config for each channel (name, description, topic, welcome message, agent binding)
+   - **`bindings[]` Configuration** — generate the corresponding `bindings[]` entries for `openclaw.json` that route each channel to its assigned agent. Each binding must include `agentId` (matching `agents.list[].id`) and `match` with the appropriate `channel` value. Present the config for user review before applying.
    - **Setup Checklist** — ordered steps to create channels on the target platform
    - **Role/Permission Recommendations** — which roles to create for agent mentions, channel access controls
    - **Integration with equip-agents** — how channel setup relates to tool bindings (MCP servers may need channel context)

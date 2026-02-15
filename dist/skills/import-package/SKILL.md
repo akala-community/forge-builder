@@ -122,10 +122,10 @@ The Forge activates this skill as an installation specialist — careful, method
    - **No existing workspace:** Clean install — no merge needed, proceed to Phase 4.
    - **Existing workspace, no overlaps:** Additive install — new agents and config entries can be appended.
    - **Existing workspace with overlaps:** Merge required — identify conflicts:
-     - Agent name collisions (same agent name exists locally and in package)
+     - Agent name/id collisions (same agent id exists locally and in package)
      - Binding conflicts (same channel/match rule bound to different agents)
-     - Tool policy conflicts (conflicting permission levels)
-     - Model config conflicts (different primary/fallback chains)
+     - Tool policy conflicts (conflicting `tools.allow`/`tools.deny` lists)
+     - Model config conflicts (different `model.primary`/`model.fallbacks` chains)
 3. Present merge plan to user:
    - What will be added (new agents, new bindings)
    - What conflicts exist and proposed resolution for each
@@ -133,8 +133,8 @@ The Forge activates this skill as an installation specialist — careful, method
 4. Get user confirmation before proceeding. If conflicts exist, resolve each one:
    - Agent name collision: rename incoming, rename existing, or replace
    - Binding conflict: keep existing, use incoming, or create separate binding
-   - Tool policy conflict: use more restrictive, use less restrictive, or merge
-   - Model config conflict: keep existing chain, use incoming chain, or merge
+   - Tool policy conflict: use more restrictive `tools.deny`, use less restrictive `tools.allow`, or merge both
+   - Model config conflict: keep existing `model.primary`/`model.fallbacks` chain, use incoming chain, or merge
 
 #### Phase 4: File Installation
 
@@ -156,9 +156,10 @@ The Forge activates this skill as an installation specialist — careful, method
    - Write the package's openclaw.json directly
 2. For merge install:
    - Merge `bindings[]` arrays — append new bindings, apply conflict resolutions
-   - Merge `model` config — apply conflict resolutions for primary/fallbacks
-   - Merge `toolPolicies` — apply conflict resolutions
-   - Merge `subagents` config — add spawn rules for new agents
+   - Merge `agents.list[]` — append new agent entries, apply conflict resolutions for name collisions
+   - Merge `agents.defaults.model` config — apply conflict resolutions for primary/fallbacks
+   - Merge `agents.list[].tools` and `agents.defaults.tools` — apply conflict resolutions for tool policies (profile, allow, alsoAllow, deny)
+   - Merge `agents.defaults.subagents` config — add spawn rules for new agents
    - Preserve all existing config that doesn't conflict
 3. Write the merged openclaw.json.
 4. If plugins are included, merge plugin registrations.
